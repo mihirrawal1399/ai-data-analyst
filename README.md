@@ -1,5 +1,3 @@
-# ai-data-analyst
-
 # AI Data Analyst
 
 A modern AI-powered data analysis platform that converts natural language into SQL queries, generates visual dashboards, and automates insights through scheduled reports.  
