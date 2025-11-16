@@ -61,9 +61,10 @@ flowchart TD
         E2[Attach Reports]
     end
 
-    subgraph DB[(PostgreSQL)]
-        D1[Tables + Vectors]
+    subgraph DB[PostgreSQL]
+        D1[(Tables + Vectors)]
     end
+
 
     A1 -->|Ask Question| API
     A2 --> API
