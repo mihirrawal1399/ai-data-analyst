@@ -1,0 +1,41 @@
+# Monorepo Folder Structure
+
+Updated: 2025-11-16T14:40:58.624Z
+
+```text
+// Directory tree (3 levels, limited to 200 entries)
+├── apps/
+│     ├── api/
+│     │       ├── src/
+│     │       └── README.md
+│     ├── mcp-db/
+│     │       ├── src/
+│     │       └── README.md
+│     ├── mcp-email/
+│     │       ├── src/
+│     │       └── README.md
+│     ├── web/
+│     │       └── README.md
+│     └── worker/
+│     │       ├── src/
+│     │       └── README.md
+├── docs/
+│     ├── architecture.md
+│     ├── mcp-tools.md
+│     ├── roadmap.md
+│     └── setup.md
+├── packages/
+│     ├── shared-types/
+│     │       ├── index.ts
+│     │       └── README.md
+│     └── storage/
+│     │       ├── index.js
+│     │       ├── index.ts
+│     │       └── README.md
+├── scripts/
+│     └── snapshot-structure.js
+├── .env.example
+├── LICENSE
+├── README.md
+├── turbo.json
+```
