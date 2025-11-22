@@ -1,0 +1,7 @@
+# Set default line endings to LF for all files managed by Git
+* text=auto eol=lf
+# Ensure configuration and shell scripts are always LF
+*.json text eol=lf
+*.js text eol=lf
+*.ts text eol=lf
+*.mjs text eol=lf
