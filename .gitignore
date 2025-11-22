@@ -1,0 +1,32 @@
+# Environment Files
+.env
+.env.local
+.env.production
+.env.development
+
+# Node Modules
+node_modules/
+
+# Build outputs
+dist/
+build/
+.out/
+.next/
+.turbo/
+
+# Prisma
+apps/api/node_modules/.prisma/
+
+# Logs
+*.log
+
+# Temp files
+*.tmp
+*.swp
+
+# OS
+.DS_Store
+
+# Editor
+.vscode/
+.idea/
