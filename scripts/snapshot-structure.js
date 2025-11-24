@@ -59,12 +59,9 @@ function main() {
   const md = `# Monorepo Folder Structure\n\nUpdated: ${new Date().toISOString()}\n\n\`\`\`text\n${treeText}\n\`\`\``;
   fs.writeFileSync(docsPath, md, "utf8");
 
-  // Save to storage via helper
-  storage.saveText("monorepo/structure.txt", treeText);
-
   console.log("Saved:");
   console.log("- ", path.relative(repoRoot, docsPath));
-  console.log("- ", path.relative(repoRoot, storage.getStorageRoot()) + "/monorepo/structure.txt");
+
 }
 
 main();
