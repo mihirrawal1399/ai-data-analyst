@@ -1,38 +1,37 @@
 # Monorepo Folder Structure
 
-Updated: 2025-11-23T13:56:38.997Z
+Updated: 2025-11-26T17:23:53.304Z
 
 ```text
 // Directory tree (3 levels, limited to 200 entries)
-├── .vscode/
-│     └── settings.json
 ├── apps/
 │     ├── api/
+│     │       ├── prisma/
+│     │       │         ├── migrations/
+│     │       │         └── schema.prisma
 │     │       ├── src/
+│     │       │         ├── db/
+│     │       │         ├── modules/
 │     │       │         ├── app.controller.spec.ts
 │     │       │         ├── app.controller.ts
 │     │       │         ├── app.module.ts
 │     │       │         ├── app.service.ts
 │     │       │         └── main.ts
-│     │       ├── .env
+│     │       ├── .gitignore
 │     │       ├── .prettierrc
 │     │       ├── eslint.config.mjs
 │     │       ├── nest-cli.json
 │     │       ├── package.json
 │     │       ├── pnpm-lock.yaml
+│     │       ├── prisma.config.ts
 │     │       ├── README.md
 │     │       ├── tsconfig.build.json
 │     │       └── tsconfig.json
 │     ├── mcp-db/
-│     │       ├── src/
 │     │       └── README.md
 │     ├── mcp-email/
-│     │       ├── src/
 │     │       └── README.md
 │     ├── web/
-│     │       ├── .next/
-│     │       │         ├── dev/
-│     │       │         └── types/
 │     │       ├── public/
 │     │       │         ├── file.svg
 │     │       │         ├── globe.svg
@@ -43,7 +42,6 @@ Updated: 2025-11-23T13:56:38.997Z
 │     │       │         └── app/
 │     │       ├── .gitignore
 │     │       ├── eslint.config.mjs
-│     │       ├── next-env.d.ts
 │     │       ├── next.config.ts
 │     │       ├── package.json
 │     │       ├── pnpm-lock.yaml
@@ -51,7 +49,6 @@ Updated: 2025-11-23T13:56:38.997Z
 │     │       ├── README.md
 │     │       └── tsconfig.json
 │     └── worker/
-│     │       ├── src/
 │     │       └── README.md
 ├── docs/
 │     ├── architecture.md
@@ -70,7 +67,6 @@ Updated: 2025-11-23T13:56:38.997Z
 │     │       └── README.md
 ├── scripts/
 │     └── snapshot-structure.js
-├── .env
 ├── .env.example
 ├── .gitattributes
 ├── .gitignore

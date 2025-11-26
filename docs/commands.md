@@ -25,6 +25,9 @@ pnpm store prune
 # Find the store path: pnpm store path
 # Then manually delete the directory (e.g., C:\Users\rawal\AppData\Local\pnpm\store\v3)
 
+Get-ExecutionPolicy
+Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
+
 #prisma commands
 pnpm --filter api prisma migrate dev
 or

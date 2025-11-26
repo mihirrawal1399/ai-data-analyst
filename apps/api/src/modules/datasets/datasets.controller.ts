@@ -1,24 +1,22 @@
-import {
-  Controller,
-  Post,
-  Body,
-  UploadedFile,
-  UseInterceptors,
-} from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { Controller, Post, Body, Req } from '@nestjs/common';
+import { FastifyRequest } from 'fastify';
 import { UploadDatasetDto } from './dto/upload-dataset.dto';
 import { DatasetsService } from './datasets.service';
 
 @Controller('datasets')
 export class DatasetsController {
-  constructor(private readonly datasetsService: DatasetsService) {}
+  constructor(private readonly datasetsService: DatasetsService) { }
 
   @Post('upload')
-  @UseInterceptors(FileInterceptor('file'))
-  uploadDataset(
+  async uploadDataset(
     @Body() body: UploadDatasetDto,
-    @UploadedFile() file: Express.Multer.File,
+    @Req() req: FastifyRequest,
   ) {
-    return this.datasetsService.handleUpload(body, file);
+    const file = await req.file();
+    if (!file) {
+      throw new Error('File is required');
+    }
+    const buffer = await file.toBuffer();
+    return this.datasetsService.handleUpload(body, { buffer });
   }
 }

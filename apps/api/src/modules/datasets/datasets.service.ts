@@ -5,9 +5,9 @@ import { PrismaService } from 'src/db/prisma.service';
 
 @Injectable()
 export class DatasetsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
-  async handleUpload(body: { name: string }, file: Express.Multer.File) {
+  async handleUpload(body: { name: string }, file: { buffer: Buffer }) {
     // 1. Parse CSV
     const csvText = file.buffer.toString('utf8');
     const records = parse(csvText, { columns: true, skip_empty_lines: true });
@@ -42,7 +42,7 @@ export class DatasetsService {
 
     // 5. Insert rows efficiently
     for (const row of records) {
-      const values = columns.map((col) => row[col] ?? null);
+      const values = columns.map((col) => (row as any)[col] ?? null);
       const placeholders = values.map((_, i) => `$${i + 1}`).join(',');
 
       await client.query(
