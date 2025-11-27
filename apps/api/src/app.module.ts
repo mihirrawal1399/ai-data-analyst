@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config/dist/config.module';
+import { DbModule } from './db/db.module';
 import { DatasetsModule } from './modules/datasets/datasets.module';
 import { TablesModule } from './modules/tables/tables.module';
 import { ColumnsModule } from './modules/columns/columns.module';
@@ -18,6 +19,7 @@ import { McpModule } from './modules/mcp/mcp.module';
       isGlobal: true, // make config available everywhere
       envFilePath: '.env',
     }),
+    DbModule,
     DatasetsModule,
     TablesModule,
     ColumnsModule,
@@ -31,4 +33,4 @@ import { McpModule } from './modules/mcp/mcp.module';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }

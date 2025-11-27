@@ -1,6 +1,6 @@
 import { Controller, Post, Body, Req } from '@nestjs/common';
-import { FastifyRequest } from 'fastify';
-import { UploadDatasetDto } from './dto/upload-dataset.dto';
+import type { FastifyRequest } from 'fastify';
+import type { UploadDatasetDto } from './dto/upload-dataset.dto';
 import { DatasetsService } from './datasets.service';
 
 @Controller('datasets')
@@ -17,6 +17,9 @@ export class DatasetsController {
       throw new Error('File is required');
     }
     const buffer = await file.toBuffer();
-    return this.datasetsService.handleUpload(body, { buffer });
+    return this.datasetsService.handleUpload(
+      { name: body.name, userId: body.userId },
+      { buffer },
+    );
   }
 }
