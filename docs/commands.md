@@ -33,3 +33,5 @@ pnpm --filter api prisma migrate dev
 or
 apps/api/ pnpm prisma migrate dev --name init
 pnpm prisma db pull
+
+/apps/mcp-db > node test-mcp.js

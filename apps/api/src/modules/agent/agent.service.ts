@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/db/prisma.service';
 import { Prisma } from '../../../generated/prisma/client';
-import { Client } from 'pg';
 import { LLMService } from './llm.service';
 import { SchemaService } from './schema.service';
 import { SQLValidatorService } from './sql-validator.service';
 import { LLMProviderOptions, UsageMetrics } from './types/llm-config.types';
 import { buildSQLGenerationPrompt } from './prompts/sql-generation.prompt';
 import { buildResultSummaryPrompt } from './prompts/result-summary.prompt';
+import { McpDbClient } from '../mcp/clients/mcp-db.client';
 
 @Injectable()
 export class AgentService {
@@ -16,6 +16,7 @@ export class AgentService {
         private llmService: LLMService,
         private schemaService: SchemaService,
         private sqlValidator: SQLValidatorService,
+        private mcpDbClient: McpDbClient,
     ) { }
 
     /**
@@ -33,23 +34,23 @@ export class AgentService {
         const startTime = Date.now();
 
         try {
-            // 1. Fetch dataset schema
+            // 1. Fetch dataset schema (logical)
             const dataset = await this.schemaService.getDatasetSchema(datasetId);
             const schemaInfo = this.schemaService.formatSchemaForLLM(dataset);
 
-            // 2. Get sample rows from first table
+            // 2. Get sample rows from first table (using McpDbClient)
             const firstTable = dataset.tables[0];
             if (!firstTable) {
                 throw new Error('Dataset has no tables');
             }
 
-            const sampleRows = await this.schemaService.getSampleRows(
-                firstTable.name,
-                3,
-            );
-            const sampleRowsText = this.schemaService.formatSampleRowsForLLM(sampleRows);
+            // We use McpDbClient to execute a safe query for sample rows
+            const sampleQuery = `SELECT * FROM "${firstTable.name}" LIMIT 3`;
+            const sampleResult = await this.mcpDbClient.executeQuery(sampleQuery);
 
-            // 3. Build LLM options (future: check user tier, BYOK)
+            const sampleRowsText = this.schemaService.formatSampleRowsForLLM(sampleResult.rows);
+
+            // 3. Build LLM options
             const llmOptions: LLMProviderOptions = {
                 userId: options.userId,
                 useUserKey: !!options.userApiKey,
@@ -81,28 +82,17 @@ export class AgentService {
                 throw new Error(`Invalid SQL: ${validation.errors.join(', ')}`);
             }
 
-            // 6. Execute SQL
-            const client = new Client({ connectionString: process.env.DATABASE_URL });
-            await client.connect();
-
-            let queryResult;
-            try {
-                // Set statement timeout
-                await client.query(
-                    `SET statement_timeout = ${process.env.QUERY_TIMEOUT_MS || 30000}`,
-                );
-
-                queryResult = await client.query(validation.validatedSQL);
-            } finally {
-                await client.end();
-            }
+            // 6. Execute SQL via MCP
+            const queryResult = await this.mcpDbClient.executeQuery(validation.validatedSQL);
+            const rowCount = queryResult.rowCount;
+            const queryResultRows = queryResult.rows;
 
             // 7. Generate summary
             const summaryPrompt = buildResultSummaryPrompt({
                 question,
                 sql: validation.validatedSQL,
-                rowCount: queryResult.rowCount || 0,
-                results: queryResult.rows,
+                rowCount: rowCount,
+                results: queryResultRows,
             });
 
             const { summary, metrics: summaryMetrics } =
@@ -123,20 +113,23 @@ export class AgentService {
                     datasetId,
                     question,
                     sql: validation.validatedSQL,
-                    resultPreview: queryResult.rows.slice(0, 10),
+                    resultPreview: queryResultRows.slice(0, 10),
                 },
             });
 
             // 10. Return response
             const executionTime = Date.now() - startTime;
 
+            // Infer columns from first row if available
+            const columns = queryResult.columns;
+
             return {
                 question,
                 sql: validation.validatedSQL,
                 results: {
-                    rows: queryResult.rows,
-                    rowCount: queryResult.rowCount,
-                    columns: queryResult.fields.map(f => f.name),
+                    rows: queryResultRows,
+                    rowCount: rowCount,
+                    columns: columns,
                 },
                 summary,
                 executionTimeMs: executionTime,

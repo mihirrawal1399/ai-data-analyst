@@ -1,6 +1,6 @@
-import { openai } from '@ai-sdk/openai';
-import { anthropic } from '@ai-sdk/anthropic';
-import { google } from '@ai-sdk/google';
+import { createOpenAI } from '@ai-sdk/openai';
+import { createAnthropic } from '@ai-sdk/anthropic';
+import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import {
     LLMProvider,
     LLMConfig,
@@ -62,7 +62,7 @@ export class LLMProviderFactory {
      * Create LLM provider instance
      * Supports both system keys and BYOK
      */
-    static createProvider(options: LLMProviderOptions = {}) {
+    static createProvider(options: LLMProviderOptions = {}): any {
         this.initialize();
         const config = this.buildConfig(options);
         return this.instantiateProvider(config);
@@ -127,25 +127,28 @@ export class LLMProviderFactory {
     /**
      * Instantiate the actual provider SDK
      */
-    private static instantiateProvider(config: LLMConfig) {
+    private static instantiateProvider(config: LLMConfig): any {
         switch (config.provider) {
             case LLMProvider.OPENAI:
                 if (!config.apiKey) {
                     throw new Error('OpenAI API key is required');
                 }
-                return openai(config.model, { apiKey: config.apiKey });
+                const openai = createOpenAI({ apiKey: config.apiKey });
+                return openai(config.model);
 
             case LLMProvider.ANTHROPIC:
                 if (!config.apiKey) {
                     throw new Error('Anthropic API key is required');
                 }
-                return anthropic(config.model, { apiKey: config.apiKey });
+                const anthropic = createAnthropic({ apiKey: config.apiKey });
+                return anthropic(config.model);
 
             case LLMProvider.GOOGLE:
                 if (!config.apiKey) {
                     throw new Error('Google API key is required');
                 }
-                return google(config.model, { apiKey: config.apiKey });
+                const google = createGoogleGenerativeAI({ apiKey: config.apiKey });
+                return google(config.model);
 
             case LLMProvider.GROQ:
                 // Note: Groq support would need @ai-sdk/groq package

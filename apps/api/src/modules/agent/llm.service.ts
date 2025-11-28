@@ -21,13 +21,13 @@ export class LLMService {
             prompt,
             temperature: config.temperature,
             maxTokens: config.maxTokens,
-        });
+        } as any);
 
         const metrics: UsageMetrics = {
-            tokensUsed: result.usage?.totalTokens || 0,
+            tokensUsed: result.usage.totalTokens || 0,
             estimatedCost: this.estimateCost(
                 config.provider,
-                result.usage?.totalTokens || 0
+                result.usage.totalTokens || 0
             ),
             provider: config.provider,
             model: config.model,
@@ -56,13 +56,13 @@ export class LLMService {
             prompt,
             temperature: 0.3, // Slightly higher for natural summaries
             maxTokens: 500,
-        });
+        } as any);
 
         const metrics: UsageMetrics = {
-            tokensUsed: result.usage?.totalTokens || 0,
+            tokensUsed: result.usage.totalTokens || 0,
             estimatedCost: this.estimateCost(
                 config.provider,
-                result.usage?.totalTokens || 0
+                result.usage.totalTokens || 0
             ),
             provider: config.provider,
             model: config.model,

@@ -4,8 +4,10 @@ import { AgentService } from './agent.service';
 import { LLMService } from './llm.service';
 import { SchemaService } from './schema.service';
 import { SQLValidatorService } from './sql-validator.service';
+import { McpModule } from '../mcp/mcp.module';
 
 @Module({
+    imports: [McpModule],
     controllers: [AgentController],
     providers: [
         AgentService,
