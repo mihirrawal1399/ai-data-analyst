@@ -2,6 +2,7 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import Fastify from 'fastify';
 import { schemaService } from './schema.service';
 import { safeExecService } from './safe-exec.service';
+import { datasetMappingService } from './dataset-mapping.service';
 import {
     McpDbActions,
     McpSchemaResponse,
@@ -20,32 +21,51 @@ export const DBTool: Tool = {
     name: 'database',
     description: 'PostgreSQL Database Tool for Schema Inspection and Safe Query Execution',
     execute: async (action: string, params: any) => {
-        switch (action as McpDbActions) {
-            case 'ping':
-                return { ok: true, timestamp: Date.now() };
+        try {
+            switch (action as McpDbActions) {
+                case 'ping':
+                    return { ok: true, timestamp: Date.now() };
 
-            case 'getSchema':
-                // Returns McpSchemaResponse
-                return schemaService.getSchema();
+                case 'getSchema':
+                    return await schemaService.getSchema();
 
-            case 'getTables':
-                return schemaService.listTables();
+                case 'getTables':
+                    return await schemaService.listTables();
 
-            case 'getColumns':
-                if (!params.tableName) throw new Error('tableName is required');
-                return schemaService.listColumns(params.tableName);
+                case 'getColumns':
+                    if (!params.tableName) {
+                        throw { code: 'VALIDATION_ERROR', message: 'tableName is required' };
+                    }
+                    return await schemaService.listColumns(params.tableName);
 
-            case 'describeTable':
-                if (!params.tableName) throw new Error('tableName is required');
-                return schemaService.describeTable(params.tableName);
+                case 'describeTable':
+                    if (!params.tableName) {
+                        throw { code: 'VALIDATION_ERROR', message: 'tableName is required' };
+                    }
+                    return await schemaService.describeTable(params.tableName);
 
-            case 'executeQuery':
-                if (!params.sql) throw new Error('sql is required');
-                // Returns McpQueryResult
-                return safeExecService.executeSafeQuery(params.sql);
+                case 'executeQuery':
+                    if (!params.sql) {
+                        throw { code: 'VALIDATION_ERROR', message: 'sql is required' };
+                    }
+                    return await safeExecService.executeSafeQuery(params.sql);
 
-            default:
-                throw new Error(`Unknown action: ${action}`);
+                case 'getDatasetTable':
+                    if (!params.datasetId) {
+                        throw { code: 'VALIDATION_ERROR', message: 'datasetId is required' };
+                    }
+                    return await datasetMappingService.getDatasetTables(params.datasetId);
+
+                default:
+                    throw { code: 'NOT_FOUND', message: `Unknown action: ${action}` };
+            }
+        } catch (error: any) {
+            // Consistent error wrapping with structured codes
+            return {
+                error: error.message || 'Unknown error occurred',
+                code: error.code || 'UNKNOWN_ERROR',
+                details: error.details
+            } as McpErrorResponse;
         }
     }
 };

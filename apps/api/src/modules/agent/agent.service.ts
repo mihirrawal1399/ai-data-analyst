@@ -1,9 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { PrismaService } from 'src/db/prisma.service';
 import { Prisma } from '../../../generated/prisma/client';
 import { LLMService } from './llm.service';
-import { SchemaService } from './schema.service';
-import { SQLValidatorService } from './sql-validator.service';
 import { LLMProviderOptions, UsageMetrics } from './types/llm-config.types';
 import { buildSQLGenerationPrompt } from './prompts/sql-generation.prompt';
 import { buildResultSummaryPrompt } from './prompts/result-summary.prompt';
@@ -14,8 +12,6 @@ export class AgentService {
     constructor(
         private prisma: PrismaService,
         private llmService: LLMService,
-        private schemaService: SchemaService,
-        private sqlValidator: SQLValidatorService,
         private mcpDbClient: McpDbClient,
     ) { }
 
@@ -34,32 +30,32 @@ export class AgentService {
         const startTime = Date.now();
 
         try {
-            // 1. Fetch dataset schema (logical)
-            const dataset = await this.schemaService.getDatasetSchema(datasetId);
-            const schemaInfo = this.schemaService.formatSchemaForLLM(dataset);
-
-            // 2. Get sample rows from first table (using McpDbClient)
-            const firstTable = dataset.tables[0];
-            if (!firstTable) {
-                throw new Error('Dataset has no tables');
+            // 1. Get dataset table mapping from MCP
+            const datasetTables = await this.mcpDbClient.getDatasetTable(datasetId);
+            if (!datasetTables.tables || datasetTables.tables.length === 0) {
+                throw new HttpException('Dataset has no tables', HttpStatus.NOT_FOUND);
             }
 
-            // We use McpDbClient to execute a safe query for sample rows
+            // 2. Build enhanced schema context with column details
+            const schemaInfo = await this.buildSchemaContext(datasetTables);
+
+            // 3. Get sample rows from first table
+            const firstTable = datasetTables.tables[0];
             const sampleQuery = `SELECT * FROM "${firstTable.name}" LIMIT 3`;
             const sampleResult = await this.mcpDbClient.executeQuery(sampleQuery);
 
-            const sampleRowsText = this.schemaService.formatSampleRowsForLLM(sampleResult.rows);
+            const sampleRowsText = this.formatSampleRows(sampleResult.rows);
 
-            // 3. Build LLM options
+            // 4. Build LLM options
             const llmOptions: LLMProviderOptions = {
                 userId: options.userId,
                 useUserKey: !!options.userApiKey,
                 apiKey: options.userApiKey,
             };
 
-            // 4. Generate SQL
+            // 5. Generate SQL with enhanced schema context
             const sqlPrompt = buildSQLGenerationPrompt({
-                datasetName: dataset.name,
+                datasetName: datasetId,
                 schemaInfo,
                 sampleRows: sampleRowsText,
                 question,
@@ -69,28 +65,19 @@ export class AgentService {
             const { sql: generatedSQL, metrics: sqlMetrics } =
                 await this.llmService.generateSQL(sqlPrompt, llmOptions);
 
-            const cleanedSQL = this.sqlValidator.cleanSQL(generatedSQL);
+            // 6. Clean SQL (remove markdown)
+            const cleanedSQL = this.cleanSQL(generatedSQL);
 
-            // 5. Validate SQL
-            const allowedTables = dataset.tables.map(t => t.name);
-            const validation = this.sqlValidator.validateSQL(
-                cleanedSQL,
-                allowedTables,
-            );
+            // 7. Execute via MCP (validation happens in MCP tool automatically)
 
-            if (!validation.isValid) {
-                throw new Error(`Invalid SQL: ${validation.errors.join(', ')}`);
-            }
-
-            // 6. Execute SQL via MCP
-            const queryResult = await this.mcpDbClient.executeQuery(validation.validatedSQL);
+            const queryResult = await this.mcpDbClient.executeQuery(cleanedSQL);
             const rowCount = queryResult.rowCount;
             const queryResultRows = queryResult.rows;
 
-            // 7. Generate summary
+            // 8. Generate summary
             const summaryPrompt = buildResultSummaryPrompt({
                 question,
-                sql: validation.validatedSQL,
+                sql: cleanedSQL,
                 rowCount: rowCount,
                 results: queryResultRows,
             });
@@ -112,7 +99,7 @@ export class AgentService {
                 data: {
                     datasetId,
                     question,
-                    sql: validation.validatedSQL,
+                    sql: cleanedSQL,
                     resultPreview: queryResultRows.slice(0, 10),
                 },
             });
@@ -125,7 +112,7 @@ export class AgentService {
 
             return {
                 question,
-                sql: validation.validatedSQL,
+                sql: cleanedSQL,
                 results: {
                     rows: queryResultRows,
                     rowCount: rowCount,
@@ -139,18 +126,101 @@ export class AgentService {
 
         } catch (error) {
             // Log failed query
-            await this.prisma.queryLog.create({
-                data: {
-                    datasetId,
-                    question,
-                    sql: null,
-                    resultPreview: Prisma.DbNull,
-                },
-            });
+            try {
+                await this.prisma.queryLog.create({
+                    data: {
+                        datasetId,
+                        question,
+                        sql: null,
+                        resultPreview: Prisma.DbNull,
+                    },
+                });
+            } catch (logError) {
+                this.logger.error('Failed to log query:', logError);
+            }
 
-            throw new Error(`Query processing failed: ${error.message}`);
+            // Translate to HTTP exception
+            throw this.translateToHttpException(error);
         }
     }
+
+    /**
+     * Build schema context with column details for LLM
+     */
+    private async buildSchemaContext(datasetTables: any): Promise<string> {
+        let schema = '';
+        for (const table of datasetTables.tables) {
+            const columns = await this.mcpDbClient.getColumns(table.name);
+            schema += `Table: ${table.name} (${table.rowCount} rows)\n`;
+            schema += `Columns:\n`;
+            columns.forEach(col => {
+                schema += `  - ${col.column_name} (${col.data_type})${col.is_nullable === 'YES' ? ' [nullable]' : ''}\n`;
+            });
+            schema += `\n`;
+        }
+        return schema;
+    }
+
+    /**
+     * Format sample rows for LLM
+     */
+    private formatSampleRows(rows: any[]): string {
+        if (rows.length === 0) return 'No sample data available';
+        return JSON.stringify(rows, null, 2);
+    }
+
+    /**
+     * Clean SQL by removing markdown code blocks
+     */
+    private cleanSQL(sql: string): string {
+        // Remove markdown code blocks
+        sql = sql.replace(/```sql\n?/g, '').replace(/```\n?/g, '');
+        // Remove extra whitespace
+        return sql.trim();
+    }
+
+    /**
+     * Translate errors to HTTP exceptions with user-friendly messages
+     */
+    private translateToHttpException(error: any): HttpException {
+        // Already an HTTP exception
+        if (error instanceof HttpException) {
+            return error;
+        }
+
+        const message = error.message || 'Unknown error';
+
+        // Invalid SQL or validation errors -> 400
+        if (message.includes('Invalid SQL') ||
+            message.includes('validation') ||
+            message.includes('unsafe') ||
+            message.includes('not allowed')) {
+            return new HttpException(
+                message,
+                HttpStatus.BAD_REQUEST
+            );
+        }
+
+        // Not found errors -> 404
+        if (message.includes('not found') || message.includes('does not exist')) {
+            return new HttpException(
+                message,
+                HttpStatus.NOT_FOUND
+            );
+        }
+
+        // Default to 500 for execution failures
+        return new HttpException(
+            'Query execution failed',
+            HttpStatus.INTERNAL_SERVER_ERROR
+        );
+    }
+
+    private readonly logger = new (class {
+        error(message: string, error?: any) {
+            console.error(`[AgentService] ${message}`, error);
+        }
+    })();
 
     async analyzeDataset(datasetId: string) {
         // TODO: Implement AI-powered dataset analysis and insights
@@ -168,7 +238,7 @@ export class AgentService {
         });
 
         if (!dataset) {
-            throw new Error('Dataset not found');
+            throw new HttpException('Dataset not found', HttpStatus.NOT_FOUND);
         }
 
         return {

@@ -2,10 +2,6 @@ import * as dotenv from 'dotenv';
 import * as path from 'path';
 import * as fs from 'fs';
 
-import * as dotenv from 'dotenv';
-import * as path from 'path';
-import * as fs from 'fs';
-
 /**
  * Load environment variables for MCP DB Tool.
  * Precedence:
@@ -14,7 +10,7 @@ import * as fs from 'fs';
  *   3. Root .env (../../../../.env)
  */
 export function loadEnv(): void {
-    const localEnvPath = path.resolve(__dirname, '../../.env');
+    const localEnvPath = path.resolve(process.cwd(), '.env')
     const rootEnvPath = process.env.ROOT_ENV_PATH
         ? path.resolve(process.env.ROOT_ENV_PATH)
         : path.resolve(__dirname, '../../../../.env');
