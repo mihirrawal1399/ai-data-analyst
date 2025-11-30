@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Put, Delete, Body, Param } from '@nestjs/common';
+import { Controller, Post, Get, Put, Delete, Body, Param, Query, ParseBoolPipe } from '@nestjs/common';
 import { DashboardsService } from './dashboards.service';
 
 @Controller('dashboards')
@@ -16,7 +16,13 @@ export class DashboardsController {
     }
 
     @Get(':id')
-    async findOne(@Param('id') id: string) {
+    async findOne(
+        @Param('id') id: string,
+        @Query('includeData', new ParseBoolPipe({ optional: true })) includeData?: boolean
+    ) {
+        if (includeData) {
+            return this.dashboardsService.findOneWithData(id);
+        }
         return this.dashboardsService.findOne(id);
     }
 
