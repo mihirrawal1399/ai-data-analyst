@@ -3,7 +3,7 @@ import { parse } from 'csv-parse';
 import { Readable } from 'stream';
 import { Client } from 'pg';
 import { PrismaService } from 'src/db/prisma.service';
-import { Prisma } from '../../../generated/prisma/client';
+import { Prisma } from '@prisma/client';
 
 interface ColumnInfo {
   name: string;

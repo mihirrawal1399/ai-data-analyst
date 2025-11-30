@@ -1,6 +1,6 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { PrismaService } from 'src/db/prisma.service';
-import { Prisma } from '../../../generated/prisma/client';
+import { Prisma } from '@prisma/client';
 import { LLMService } from './llm.service';
 import { LLMProviderOptions, UsageMetrics } from './types/llm-config.types';
 import { buildSQLGenerationPrompt } from './prompts/sql-generation.prompt';

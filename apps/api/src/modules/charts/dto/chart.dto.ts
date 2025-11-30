@@ -1,6 +1,6 @@
 import { IsString, IsNotEmpty, IsOptional, IsObject, IsEnum, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
-import type { ChartType, ChartConfig, ChartFilter } from '../../../../../../packages/shared-types';
+import type { ChartType, ChartConfig, ChartFilter } from '@repo/shared-types';
 
 export class ChartFilterDto implements ChartFilter {
     @IsString()

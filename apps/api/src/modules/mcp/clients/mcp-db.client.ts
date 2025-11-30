@@ -5,7 +5,7 @@ import {
     McpSchemaResponse,
     McpQueryResult,
     McpErrorResponse
-} from '../../../../../../packages/shared-types/mcp-db';
+} from '@repo/shared-types';
 
 @Injectable()
 export class McpDbClient {

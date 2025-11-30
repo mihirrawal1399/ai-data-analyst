@@ -124,6 +124,39 @@ node test-api-health.js         # Test API health only
 
 ---
 
+## Web (Next.js) Commands
+
+### From Root Directory
+
+```bash
+# Development
+pnpm --filter web dev
+
+# Build
+pnpm --filter web build
+
+# Start production server
+pnpm --filter web start
+```
+
+### From `apps/web/` Directory
+
+```bash
+# Development
+pnpm dev
+
+# Build
+pnpm build
+
+# Start production server
+pnpm start
+
+# Lint
+pnpm lint
+```
+
+---
+
 ## MCP DB Tool Commands
 
 ### From Root Directory

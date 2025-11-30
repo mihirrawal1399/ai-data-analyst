@@ -23,15 +23,18 @@ export interface ChartDataPoint {
     [key: string]: any;   // Dynamic keys based on xAxis/yAxis
 }
 
-export interface ChartWithData {
+export interface Chart {
     id: string;
     title?: string;
     type: ChartType;
     config: ChartConfig;
     dashboardId: string;
     datasetId: string;
-    createdAt: Date;
-    updatedAt: Date;
+    createdAt: Date | string;
+    updatedAt: Date | string;
+}
+
+export interface ChartWithData extends Chart {
     data?: ChartDataPoint[];  // Optional executed data
 }
 
@@ -40,6 +43,6 @@ export interface DashboardWithCharts {
     name: string;
     layout?: any;
     userId: string;
-    createdAt: Date;
+    createdAt: Date | string;
     charts: ChartWithData[];
 }
