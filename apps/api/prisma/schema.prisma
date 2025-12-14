@@ -29,7 +29,9 @@ model Dataset {
   columns     DatasetColumn[]
   queryLogs   QueryLog[]
   charts      Chart[]
+  automations Automation[]
 }
+
 
 model DatasetTable {
   id         String    @id @default(uuid())
@@ -75,8 +77,10 @@ model Dashboard {
   userId     String
   user       User      @relation(fields: [userId], references: [id])
 
-  charts     Chart[]
+  charts      Chart[]
+  automations Automation[]
 }
+
 
 model Chart {
   id          String    @id @default(uuid())
@@ -94,12 +98,25 @@ model Chart {
 }
 
 model Automation {
-  id          String    @id @default(uuid())
-  name        String
-  schedule    String    // cron expression
-  lastRunAt   DateTime?
-  payload     Json?
+  id            String    @id @default(uuid())
+  userId        String
+  dashboardId   String?
+  datasetId     String?
+  name          String
+  description   String?
+  schedule      String    // Cron expression (e.g., "0 9 * * *")
+  type          String    // "summary" | "alert" | "trend" | "custom"
+  config        Json      // { thresholds, filters, chartIds, recipients, etc. }
+  lastRun       DateTime?
+  nextRun       DateTime?
+  enabled       Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
-  userId      String
-  user        User      @relation(fields: [userId], references: [id])
+  user          User       @relation(fields: [userId], references: [id])
+  dashboard     Dashboard? @relation(fields: [dashboardId], references: [id])
+  dataset       Dataset?   @relation(fields: [datasetId], references: [id])
+
+  @@index([userId])
+  @@index([enabled, nextRun])
 }

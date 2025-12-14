@@ -1,32 +1,45 @@
-import { Controller, Post, Get, Put, Delete, Body, Param } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, Query } from '@nestjs/common';
 import { AutomationsService } from './automations.service';
+import { CreateAutomationDto } from './dto/create-automation.dto';
+import { UpdateAutomationDto } from './dto/update-automation.dto';
 
 @Controller('automations')
 export class AutomationsController {
-    constructor(private readonly automationsService: AutomationsService) { }
+    constructor(private service: AutomationsService) { }
 
     @Post()
-    async create(@Body() body: { name: string; userId: string; schedule: string; payload?: any }) {
-        return this.automationsService.create(body);
+    create(@Body() dto: CreateAutomationDto) {
+        return this.service.createAutomation(dto);
     }
 
     @Get()
-    async findAll() {
-        return this.automationsService.findAll();
+    findAll(@Query('userId') userId: string) {
+        return this.service.findAll(userId);
+    }
+
+    @Get('due')
+    getDue() {
+        return this.service.getDueAutomations();
     }
 
     @Get(':id')
-    async findOne(@Param('id') id: string) {
-        return this.automationsService.findOne(id);
+    findOne(@Param('id') id: string) {
+        return this.service.findOne(id);
     }
 
     @Put(':id')
-    async update(@Param('id') id: string, @Body() body: { name?: string; schedule?: string; payload?: any }) {
-        return this.automationsService.update(id, body);
+    update(@Param('id') id: string, @Body() dto: UpdateAutomationDto) {
+        return this.service.update(id, dto);
     }
 
     @Delete(':id')
-    async remove(@Param('id') id: string) {
-        return this.automationsService.remove(id);
+    remove(@Param('id') id: string) {
+        return this.service.remove(id);
+    }
+
+    @Post(':id/execute')
+    async execute(@Param('id') id: string) {
+        const automation = await this.service.findOne(id);
+        return this.service.executeAutomation(automation);
     }
 }

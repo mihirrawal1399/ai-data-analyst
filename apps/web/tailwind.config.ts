@@ -9,7 +9,21 @@ const config: Config = {
     theme: {
         extend: {
             colors: {
-                // Use CSS variables for theming
+                // Vaporwave palette
+                surface: 'rgba(255, 255, 255, 0.05)',
+                'surface-hover': 'rgba(255, 255, 255, 0.08)',
+                glow: '#8a5cff',
+                neon: '#00e0e0',
+                pink: '#ff68a6',
+                vapor: {
+                    purple: '#8a5cff',
+                    cyan: '#00e0e0',
+                    pink: '#ff68a6',
+                    yellow: '#ffe066',
+                    'deep-purple': '#9d4edd',
+                    'electric-blue': '#7df9ff',
+                },
+                // Original theme variables
                 primary: {
                     1: "var(--color-primary-1)",
                     2: "var(--color-primary-2)",
@@ -19,16 +33,16 @@ const config: Config = {
                     2: "var(--color-secondary-2)",
                 },
                 accent: "var(--color-accent)",
-                surface: "var(--color-surface)",
-                glow: "var(--color-glow)",
                 background: "var(--color-background)",
                 foreground: "var(--color-foreground)",
                 muted: "var(--color-muted)",
                 border: "var(--color-border)",
             },
             boxShadow: {
-                neon: "var(--shadow-neon)",
-                glow: "var(--shadow-glow)",
+                neon: '0 0 15px rgba(138, 92, 255, 0.6)',
+                'neon-hover': '0 0 25px rgba(138, 92, 255, 0.8)',
+                glow: '0 0 20px rgba(0, 224, 224, 0.5)',
+                'glow-hover': '0 0 30px rgba(0, 224, 224, 0.7)',
             },
             backdropBlur: {
                 xs: "2px",
@@ -48,8 +62,8 @@ const config: Config = {
                     "100%": { transform: "translateY(0)", opacity: "1" },
                 },
                 glowPulse: {
-                    "0%, 100%": { opacity: "1" },
-                    "50%": { opacity: "0.5" },
+                    "0%, 100%": { boxShadow: '0 0 15px rgba(138, 92, 255, 0.6)' },
+                    "50%": { boxShadow: '0 0 30px rgba(138, 92, 255, 0.9)' },
                 },
             },
         },

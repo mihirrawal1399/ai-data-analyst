@@ -180,6 +180,149 @@ export class AgentService {
     }
 
     /**
+     * Generate dataset summary for automation
+     */
+    async generateDatasetSummary(datasetId: string): Promise<string> {
+        try {
+            const datasetTables = await this.mcpDbClient.getDatasetTable(datasetId);
+            if (!datasetTables.tables || datasetTables.tables.length === 0) {
+                return 'No data available in this dataset';
+            }
+
+            const firstTable = datasetTables.tables[0];
+            const sampleQuery = `SELECT * FROM "${firstTable.name}" LIMIT 10`;
+            const sampleData = await this.mcpDbClient.executeQuery(sampleQuery);
+
+            const prompt = `Generate a concise summary of this dataset:\n\nTable: ${firstTable.name}\nRow count: ${firstTable.rowCount}\nSample data: ${JSON.stringify(sampleData.rows, null, 2)}\n\nProvide key insights and statistics.`;
+
+            const { summary } = await this.llmService.summarizeResults(prompt, {});
+            return summary;
+        } catch (error) {
+            return `Error generating summary: ${error.message}`;
+        }
+    }
+
+    /**
+     * Generate dashboard summary for automation
+     */
+    async generateDashboardSummary(dashboardId: string): Promise<string> {
+        try {
+            const dashboard = await this.prisma.dashboard.findUnique({
+                where: { id: dashboardId },
+                include: { charts: true },
+            });
+
+            if (!dashboard) {
+                return 'Dashboard not found';
+            }
+
+            const summaries: string[] = [];
+            summaries.push(`Dashboard: ${dashboard.name}`);
+            summaries.push(`Total charts: ${dashboard.charts.length}`);
+            summaries.push('');
+
+            // Generate brief summary for each chart
+            for (const chart of dashboard.charts) {
+                summaries.push(`- ${chart.title || chart.type + ' chart'}: ${chart.type} visualization`);
+            }
+
+            return summaries.join('\n');
+        } catch (error) {
+            return `Error generating dashboard summary: ${error.message}`;
+        }
+    }
+
+    /**
+     * Detect trends in dataset for automation
+     */
+    async detectTrends(datasetId: string, config: any): Promise<string> {
+        try {
+            const datasetTables = await this.mcpDbClient.getDatasetTable(datasetId);
+            if (!datasetTables.tables || datasetTables.tables.length === 0) {
+                return 'No data available for trend analysis';
+            }
+
+            const firstTable = datasetTables.tables[0];
+            const metrics = config.metrics || ['*'];
+            const timeRange = config.timeRange || '7d';
+
+            // Simple trend query (assumes there's a date column)
+            const query = `
+                SELECT ${metrics.join(', ')}
+                FROM "${firstTable.name}"
+                ORDER BY created_at DESC
+                LIMIT 100
+            `;
+
+            const data = await this.mcpDbClient.executeQuery(query);
+
+            const prompt = `Analyze these trends and identify patterns:\n${JSON.stringify(data.rows, null, 2)}\n\nFocus on: ${metrics.join(', ')}\nTime range: ${timeRange}`;
+
+            const { summary } = await this.llmService.summarizeResults(prompt, {});
+            return summary;
+        } catch (error) {
+            return `Error detecting trends: ${error.message}`;
+        }
+    }
+
+    /**
+     * Check alert conditions for automation
+     */
+    async checkAlertCondition(datasetId: string, config: any): Promise<string> {
+        try {
+            const datasetTables = await this.mcpDbClient.getDatasetTable(datasetId);
+            if (!datasetTables.tables || datasetTables.tables.length === 0) {
+                return 'No data available for alert check';
+            }
+
+            const firstTable = datasetTables.tables[0];
+            const thresholds = config.thresholds || [];
+            const alerts: string[] = [];
+
+            for (const threshold of thresholds) {
+                const query = `
+                    SELECT ${threshold.metric}
+                    FROM "${firstTable.name}"
+                    ORDER BY created_at DESC
+                    LIMIT 1
+                `;
+
+                const result = await this.mcpDbClient.executeQuery(query);
+                if (result.rows.length === 0) continue;
+
+                const value = result.rows[0][threshold.metric];
+                const breached = this.checkThreshold(value, threshold);
+
+                if (breached) {
+                    alerts.push(
+                        `⚠️ Alert: ${threshold.metric} is ${value} (threshold: ${threshold.operator} ${threshold.value})`
+                    );
+                }
+            }
+
+            return alerts.length > 0
+                ? alerts.join('\n')
+                : 'No alerts triggered';
+        } catch (error) {
+            return `Error checking alerts: ${error.message}`;
+        }
+    }
+
+    /**
+     * Check if value breaches threshold
+     */
+    private checkThreshold(value: number, threshold: any): boolean {
+        switch (threshold.operator) {
+            case '>': return value > threshold.value;
+            case '<': return value < threshold.value;
+            case '>=': return value >= threshold.value;
+            case '<=': return value <= threshold.value;
+            case '=': return value === threshold.value;
+            default: return false;
+        }
+    }
+
+    /**
      * Translate errors to HTTP exceptions with user-friendly messages
      */
     private translateToHttpException(error: any): HttpException {
