@@ -4,7 +4,7 @@ import { AgentService } from '../agent/agent.service';
 import { CreateAutomationDto } from './dto/create-automation.dto';
 import { UpdateAutomationDto } from './dto/update-automation.dto';
 import { parseCronExpression, computeNextRun } from './utils/cron.util';
-import { AutomationResult } from '@repo/shared-types/automation';
+import { AutomationHistoryResult } from '@repo/shared-types/automation';
 
 @Injectable()
 export class AutomationsService {
@@ -117,7 +117,8 @@ export class AutomationsService {
     /**
      * Execute an automation
      */
-    async executeAutomation(automation: any): Promise<AutomationResult> {
+    async executeAutomation(automation: any): Promise<any> {
+        const startTime = Date.now();
         try {
             let output: string;
 
@@ -135,22 +136,56 @@ export class AutomationsService {
                     throw new Error(`Unknown automation type: ${automation.type}`);
             }
 
-            // Mark as completed
+            const durationMs = Date.now() - startTime;
+
+            // Save success result
+            await this.prisma.automationResult.create({
+                data: {
+                    automationId: automation.id,
+                    status: 'success',
+                    output,
+                    durationMs,
+                },
+            });
+
+            // Mark as completed and schedule next run
             await this.markAutomationRun(automation.id);
 
             return {
                 success: true,
                 output,
+                durationMs,
                 executedAt: new Date(),
             };
         } catch (error) {
+            const durationMs = Date.now() - startTime;
+
+            // Save failure result
+            await this.prisma.automationResult.create({
+                data: {
+                    automationId: automation.id,
+                    status: 'failure',
+                    error: error.message,
+                    durationMs,
+                },
+            });
+
             return {
                 success: false,
                 output: null,
                 error: error.message,
+                durationMs,
                 executedAt: new Date(),
             };
         }
+    }
+
+    async getAutomationResults(automationId: string, limit = 50) {
+        return this.prisma.automationResult.findMany({
+            where: { automationId },
+            orderBy: { executedAt: 'desc' },
+            take: limit,
+        });
     }
 
     private async executeSummary(automation: any): Promise<string> {

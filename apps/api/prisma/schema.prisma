@@ -116,7 +116,23 @@ model Automation {
   user          User       @relation(fields: [userId], references: [id])
   dashboard     Dashboard? @relation(fields: [dashboardId], references: [id])
   dataset       Dataset?   @relation(fields: [datasetId], references: [id])
+  results       AutomationResult[]
 
   @@index([userId])
   @@index([enabled, nextRun])
+}
+
+model AutomationResult {
+  id            String    @id @default(uuid())
+  automationId  String
+  status        String    // "success" | "failure"
+  output        String?   @db.Text
+  error         String?   @db.Text
+  metrics       Json?
+  executedAt    DateTime  @default(now())
+  durationMs    Int?
+
+  automation    Automation @relation(fields: [automationId], references: [id], onDelete: Cascade)
+
+  @@index([automationId])
 }

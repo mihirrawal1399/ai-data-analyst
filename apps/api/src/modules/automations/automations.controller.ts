@@ -42,4 +42,9 @@ export class AutomationsController {
         const automation = await this.service.findOne(id);
         return this.service.executeAutomation(automation);
     }
+
+    @Get(':id/results')
+    async getResults(@Param('id') id: string, @Query('limit') limit?: string) {
+        return this.service.getAutomationResults(id, limit ? parseInt(limit) : undefined);
+    }
 }

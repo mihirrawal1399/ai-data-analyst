@@ -27,12 +27,15 @@ export interface AutomationConfig {
     emailFormat?: 'plain' | 'html';
 }
 
-export interface AutomationResult {
-    success: boolean;
-    output: string | null; // HTML or text
-    error?: string;
-    metrics?: Record<string, any>;
+export interface AutomationHistoryResult {
+    id: string;
+    automationId: string;
+    status: 'success' | 'failure';
+    output: string | null;
+    error: string | null;
+    metrics?: any;
     executedAt: Date;
+    durationMs?: number;
 }
 
 export interface EmailPayload {
