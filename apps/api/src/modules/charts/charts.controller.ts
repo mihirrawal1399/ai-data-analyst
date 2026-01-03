@@ -33,4 +33,10 @@ export class ChartsController {
     async remove(@Param('id') id: string) {
         return this.chartsService.remove(id);
     }
+
+    @Put(':id/refresh')
+    async refreshChartData(@Param('id') id: string) {
+        return this.chartsService.executeChartQuery(id);
+    }
 }
+

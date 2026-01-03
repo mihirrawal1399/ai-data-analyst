@@ -366,17 +366,10 @@ export class AgentService {
     })();
 
     async analyzeDataset(datasetId: string) {
-        // TODO: Implement AI-powered dataset analysis and insights
-        // For now, return basic metadata
-
         const dataset = await this.prisma.dataset.findUnique({
             where: { id: datasetId },
             include: {
-                tables: {
-                    include: {
-                        columns: true,
-                    },
-                },
+                tables: { include: { columns: true } },
             },
         });
 
@@ -384,14 +377,128 @@ export class AgentService {
             throw new HttpException('Dataset not found', HttpStatus.NOT_FOUND);
         }
 
-        return {
-            message: 'AI agent analysis - to be implemented',
-            dataset: {
-                id: dataset.id,
-                name: dataset.name,
-                tableCount: dataset.tables.length,
-                totalColumns: dataset.tables.reduce((sum, table) => sum + table.columns.length, 0),
+        // Fetch sample data via MCP
+        const datasetTables = await this.mcpDbClient.getDatasetTable(datasetId);
+        const firstTable = datasetTables.tables?.[0];
+        let sampleData: any[] = [];
+        if (firstTable) {
+            const result = await this.mcpDbClient.executeQuery(`SELECT * FROM "${firstTable.name}" LIMIT 20`);
+            sampleData = result.rows;
+        }
+
+        const prompt = `Analyze this dataset and provide structured insights:
+
+Dataset: ${dataset.name}
+Tables: ${dataset.tables.map(t => t.name).join(', ')}
+Columns: ${dataset.tables.flatMap(t => t.columns.map(c => `${c.name} (${c.dataType})`)).join(', ')}
+Sample Data: ${JSON.stringify(sampleData.slice(0, 5), null, 2)}
+
+Provide a JSON response with:
+1. "summary": Brief overview of the dataset
+2. "columnDescriptions": Array of {name, description, sampleValues}
+3. "trends": Array of {metric, direction, description}
+4. "chartSuggestions": Array of {type, title, xAxis, yAxis, reason}
+5. "dataQualityIssues": Array of {column, issueType, severity, description}
+
+Return ONLY valid JSON.`;
+
+        const { summary: rawResponse } = await this.llmService.summarizeResults(prompt, {});
+
+        try {
+            const insights = JSON.parse(rawResponse);
+            return {
+                ...insights,
+                generatedAt: new Date(),
+            };
+        } catch {
+            return {
+                summary: rawResponse,
+                columnDescriptions: [],
+                trends: [],
+                chartSuggestions: [],
+                dataQualityIssues: [],
+                generatedAt: new Date(),
+            };
+        }
+    }
+
+    async analyzeDashboard(dashboardId: string) {
+        const dashboard = await this.prisma.dashboard.findUnique({
+            where: { id: dashboardId },
+            include: {
+                charts: { include: { dataset: true } },
             },
-        };
+        });
+
+        if (!dashboard) {
+            throw new HttpException('Dashboard not found', HttpStatus.NOT_FOUND);
+        }
+
+        // Build context from all charts
+        const chartSummaries = dashboard.charts.map(chart => ({
+            title: chart.title,
+            type: chart.type,
+            datasetName: chart.dataset?.name,
+            config: chart.config,
+        }));
+
+        const prompt = `Analyze this dashboard and provide insights:
+
+Dashboard: ${dashboard.name}
+Charts: ${JSON.stringify(chartSummaries, null, 2)}
+
+Provide a JSON response with:
+1. "summary": Overview of dashboard purpose and key metrics
+2. "patterns": Array of {metric, direction, percentageChange, description, confidence}
+3. "anomalies": Array of {metric, value, expectedRange, severity, description}
+4. "chartSuggestions": Array of {type, title, xAxis, yAxis, reason}
+5. "recommendedFilters": Array of filter suggestions
+
+Return ONLY valid JSON.`;
+
+        const { summary: rawResponse } = await this.llmService.summarizeResults(prompt, {});
+
+        try {
+            const insights = JSON.parse(rawResponse);
+            return {
+                ...insights,
+                generatedAt: new Date(),
+            };
+        } catch {
+            return {
+                summary: rawResponse,
+                patterns: [],
+                anomalies: [],
+                chartSuggestions: [],
+                recommendedFilters: [],
+                generatedAt: new Date(),
+            };
+        }
+    }
+
+    async suggestCharts(datasetId: string) {
+        const datasetTables = await this.mcpDbClient.getDatasetTable(datasetId);
+        if (!datasetTables.tables || datasetTables.tables.length === 0) {
+            return { suggestions: [] };
+        }
+
+        const firstTable = datasetTables.tables[0];
+        const result = await this.mcpDbClient.executeQuery(`SELECT * FROM "${firstTable.name}" LIMIT 10`);
+
+        const prompt = `Given this data sample, suggest 3-5 useful chart visualizations:
+
+Columns: ${firstTable.columns.map((c: any) => `${c.name} (${c.dataType})`).join(', ')}
+Sample: ${JSON.stringify(result.rows.slice(0, 3), null, 2)}
+
+Return JSON array of {type, title, xAxis, yAxis, reason}.`;
+
+        const { summary: rawResponse } = await this.llmService.summarizeResults(prompt, {});
+
+        try {
+            return { suggestions: JSON.parse(rawResponse) };
+        } catch {
+            return { suggestions: [], rawResponse };
+        }
     }
 }
+
