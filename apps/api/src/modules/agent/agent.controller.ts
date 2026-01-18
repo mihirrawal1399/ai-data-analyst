@@ -1,5 +1,6 @@
-import { Controller, Post, Body, HttpCode, HttpStatus, Param } from '@nestjs/common';
+import { Controller, Post, Body, HttpCode, HttpStatus, Param, UseGuards, HttpException, Req } from '@nestjs/common';
 import { AgentService } from './agent.service';
+import { AuthGuard } from '../../guards/auth.guard';
 
 // DTO for query request
 interface QueryRequestDto {
@@ -28,7 +29,33 @@ export class AgentController {
      */
     @Post('query')
     @HttpCode(HttpStatus.OK)
-    async naturalLanguageQuery(@Body() body: QueryRequestDto) {
+    @UseGuards(AuthGuard) // Require auth (includes guest)
+    async naturalLanguageQuery(@Body() body: QueryRequestDto, @Req() req: any) {
+        const user = req.user;
+
+        // Check guest limitations
+        if (user?.role === 'GUEST') {
+            const { trackGuestQuery, isGuestSessionExpired } = await import('../../utils/guest-tracking.util');
+
+            // Check session expiry
+            const expired = await isGuestSessionExpired(user.id);
+            if (expired) {
+                throw new HttpException(
+                    'Your demo session has expired. Please sign up for free to continue.',
+                    HttpStatus.FORBIDDEN
+                );
+            }
+
+            // Track query usage
+            const allowed = await trackGuestQuery(user.id);
+            if (!allowed) {
+                throw new HttpException(
+                    'You have reached your query limit for this demo session. Sign up for free to get 50 queries per day.',
+                    HttpStatus.FORBIDDEN
+                );
+            }
+        }
+
         return this.agentService.processQuery(
             body.datasetId,
             body.question,
@@ -46,6 +73,7 @@ export class AgentController {
      */
     @Post('analyze')
     @HttpCode(HttpStatus.OK)
+    @UseGuards(AuthGuard)
     async analyzeDataset(@Body() body: { datasetId: string }) {
         return this.agentService.analyzeDataset(body.datasetId);
     }
@@ -56,6 +84,7 @@ export class AgentController {
      */
     @Post('insights/dashboard/:dashboardId')
     @HttpCode(HttpStatus.OK)
+    @UseGuards(AuthGuard)
     async getDashboardInsights(@Param('dashboardId') dashboardId: string) {
         return this.agentService.analyzeDashboard(dashboardId);
     }
@@ -66,6 +95,7 @@ export class AgentController {
      */
     @Post('insights/dataset/:datasetId')
     @HttpCode(HttpStatus.OK)
+    @UseGuards(AuthGuard)
     async getDatasetInsights(@Param('datasetId') datasetId: string) {
         return this.agentService.analyzeDataset(datasetId);
     }
@@ -76,6 +106,7 @@ export class AgentController {
      */
     @Post('suggest-charts/:datasetId')
     @HttpCode(HttpStatus.OK)
+    @UseGuards(AuthGuard)
     async suggestCharts(@Param('datasetId') datasetId: string) {
         return this.agentService.suggestCharts(datasetId);
     }

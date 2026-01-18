@@ -1,12 +1,17 @@
-import { Controller, Post, Get, Put, Delete, Body, Param, Query, ParseBoolPipe } from '@nestjs/common';
+import { Controller, Post, Get, Put, Delete, Body, Param, Query, ParseBoolPipe, UseGuards } from '@nestjs/common';
 import { ChartsService } from './charts.service';
 import { CreateChartDto, UpdateChartDto } from './dto/chart.dto';
+import { AuthGuard } from '../../guards/auth.guard';
+import { QuotaGuard, QuotaResource } from '../../guards/quota.guard';
 
 @Controller('charts')
+@UseGuards(AuthGuard) // All chart routes require auth
 export class ChartsController {
     constructor(private readonly chartsService: ChartsService) { }
 
     @Post()
+    @UseGuards(QuotaGuard)
+    @QuotaResource('charts')
     async create(@Body() body: CreateChartDto) {
         return this.chartsService.create(body);
     }

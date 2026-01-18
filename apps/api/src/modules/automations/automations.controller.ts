@@ -1,13 +1,20 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, Query } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, Query, UseGuards } from '@nestjs/common';
 import { AutomationsService } from './automations.service';
 import { CreateAutomationDto } from './dto/create-automation.dto';
 import { UpdateAutomationDto } from './dto/update-automation.dto';
+import { AuthGuard } from '../../guards/auth.guard';
+import { RoleGuard, Roles } from '../../guards/role.guard';
+import { QuotaGuard, QuotaResource } from '../../guards/quota.guard';
 
 @Controller('automations')
+@UseGuards(AuthGuard) // All automation routes require auth
 export class AutomationsController {
     constructor(private service: AutomationsService) { }
 
     @Post()
+    @UseGuards(RoleGuard, QuotaGuard)
+    @Roles('PAID', 'PREMIUM', 'ENTERPRISE') // Automations are PAID+ feature
+    @QuotaResource('automations')
     create(@Body() dto: CreateAutomationDto) {
         return this.service.createAutomation(dto);
     }

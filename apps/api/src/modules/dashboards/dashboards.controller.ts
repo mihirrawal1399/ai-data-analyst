@@ -1,11 +1,18 @@
-import { Controller, Post, Get, Put, Delete, Body, Param, Query, ParseBoolPipe } from '@nestjs/common';
+import { Controller, Post, Get, Put, Delete, Body, Param, Query, ParseBoolPipe, UseGuards } from '@nestjs/common';
 import { DashboardsService } from './dashboards.service';
+import { AuthGuard } from '../../guards/auth.guard';
+import { RoleGuard, Roles } from '../../guards/role.guard';
+import { QuotaGuard, QuotaResource } from '../../guards/quota.guard';
 
 @Controller('dashboards')
+@UseGuards(AuthGuard) // All dashboard routes require auth
 export class DashboardsController {
     constructor(private readonly dashboardsService: DashboardsService) { }
 
     @Post()
+    @UseGuards(RoleGuard, QuotaGuard)
+    @Roles('FREE', 'PAID', 'PREMIUM', 'ENTERPRISE')
+    @QuotaResource('dashboards')
     async create(@Body() body: { name: string; userId: string; layout?: any }) {
         return this.dashboardsService.create(body);
     }

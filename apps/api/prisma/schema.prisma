@@ -6,13 +6,24 @@ datasource db {
   provider = "postgresql"
 }
 
+enum UserRole {
+  GUEST
+  FREE
+  PAID
+  PREMIUM
+  ENTERPRISE
+}
+
 model User {
   id        String    @id @default(uuid())
-  email     String    @unique
+  email     String?   @unique
+  password  String?
+  role      UserRole  @default(GUEST)
   createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
-  datasets   Dataset[]
-  dashboards Dashboard[]
+  datasets    Dataset[]
+  dashboards  Dashboard[]
   automations Automation[]
 }
 
