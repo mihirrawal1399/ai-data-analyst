@@ -1,5 +1,5 @@
 import { IsString, IsOptional, IsBoolean, IsEnum, IsObject } from 'class-validator';
-import { AutomationType } from '@repo/shared-types/automation';
+import { AutomationType } from '../../../../../../packages/shared-types';
 
 export class CreateAutomationDto {
     @IsString()

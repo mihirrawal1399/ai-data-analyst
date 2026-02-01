@@ -12,6 +12,7 @@ import { ChartsModule } from './modules/charts/charts.module';
 import { AutomationsModule } from './modules/automations/automations.module';
 import { AgentModule } from './modules/agent/agent.module';
 import { McpModule } from './modules/mcp/mcp.module';
+import { AuthModule } from './modules/auth/auth.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { McpModule } from './modules/mcp/mcp.module';
     AutomationsModule,
     AgentModule,
     McpModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],

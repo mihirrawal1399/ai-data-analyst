@@ -4,7 +4,7 @@ import { AgentService } from '../agent/agent.service';
 import { CreateAutomationDto } from './dto/create-automation.dto';
 import { UpdateAutomationDto } from './dto/update-automation.dto';
 import { parseCronExpression, computeNextRun } from './utils/cron.util';
-import { AutomationHistoryResult } from '@repo/shared-types/automation';
+import { AutomationHistoryResult } from '../../../../../packages/shared-types';
 
 @Injectable()
 export class AutomationsService {

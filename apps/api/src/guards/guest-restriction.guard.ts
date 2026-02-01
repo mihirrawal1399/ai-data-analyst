@@ -1,6 +1,6 @@
 import { Injectable, CanActivate, ExecutionContext, ForbiddenException, SetMetadata } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { DEMO_DATASET_ID } from '@repo/shared-types/demo';
+import { DEMO_DATASET_ID } from '../../../../packages/shared-types';
 
 export const ALLOW_GUEST_KEY = 'allowGuest';
 export const AllowGuest = () => SetMetadata(ALLOW_GUEST_KEY, true);

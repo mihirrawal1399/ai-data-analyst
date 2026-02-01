@@ -1,6 +1,8 @@
 import { Controller, Post, Body, HttpCode, HttpStatus, Param, UseGuards, HttpException, Req } from '@nestjs/common';
 import { AgentService } from './agent.service';
 import { AuthGuard } from '../../guards/auth.guard';
+import { trackGuestQuery, isGuestSessionExpired } from '../../utils/guest-tracking.util';
+import { PrismaService } from '../../db/prisma.service';
 
 // DTO for query request
 interface QueryRequestDto {
@@ -13,19 +15,14 @@ interface QueryRequestDto {
 
 @Controller('agent')
 export class AgentController {
-    constructor(private readonly agentService: AgentService) { }
+    constructor(
+        private readonly agentService: AgentService,
+        private readonly prisma: PrismaService
+    ) { }
 
     /**
      * Process natural language query
      * POST /agent/query
-     * 
-     * Body: {
-     *   datasetId: string,
-     *   question: string,
-     *   limit?: number,
-     *   userId?: string,
-     *   userApiKey?: string
-     * }
      */
     @Post('query')
     @HttpCode(HttpStatus.OK)
@@ -35,10 +32,8 @@ export class AgentController {
 
         // Check guest limitations
         if (user?.role === 'GUEST') {
-            const { trackGuestQuery, isGuestSessionExpired } = await import('../../utils/guest-tracking.util');
-
             // Check session expiry
-            const expired = await isGuestSessionExpired(user.id);
+            const expired = await isGuestSessionExpired(user.id, this.prisma);
             if (expired) {
                 throw new HttpException(
                     'Your demo session has expired. Please sign up for free to continue.',
@@ -47,7 +42,7 @@ export class AgentController {
             }
 
             // Track query usage
-            const allowed = await trackGuestQuery(user.id);
+            const allowed = await trackGuestQuery(user.id, this.prisma);
             if (!allowed) {
                 throw new HttpException(
                     'You have reached your query limit for this demo session. Sign up for free to get 50 queries per day.',
@@ -111,4 +106,3 @@ export class AgentController {
         return this.agentService.suggestCharts(datasetId);
     }
 }
-

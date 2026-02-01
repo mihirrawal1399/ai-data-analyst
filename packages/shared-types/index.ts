@@ -12,3 +12,7 @@ export type Result<T> =
 // Chart types
 export * from './chart.types';
 export * from './mcp-db';
+export * from './quotas';
+export * from './automation';
+export * from './insights';
+export * from './demo';

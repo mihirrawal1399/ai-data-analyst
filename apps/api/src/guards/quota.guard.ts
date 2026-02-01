@@ -1,7 +1,7 @@
 import { Injectable, CanActivate, ExecutionContext, ForbiddenException, SetMetadata } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { PrismaService } from '../db/prisma.service';
-import { getQuotaForRole, UserRole } from '@repo/shared-types/quotas';
+import { getQuotaForRole, UserRole } from '../../../../packages/shared-types';
 
 export const QUOTA_RESOURCE_KEY = 'quotaResource';
 export const QuotaResource = (resource: 'datasets' | 'charts' | 'dashboards' | 'automations') =>

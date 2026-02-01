@@ -1,6 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+// Removed global prisma instance
 
 interface QueryUsageTracking {
     [userId: string]: {
@@ -16,7 +15,7 @@ const SESSION_DURATION = 6 * 60 * 60 * 1000; // 6 hours
 /**
  * Track guest user query usage
  */
-export async function trackGuestQuery(userId: string): Promise<boolean> {
+export async function trackGuestQuery(userId: string, prisma: PrismaClient): Promise<boolean> {
     const now = Date.now();
 
     // Clean up expired entries
@@ -71,7 +70,7 @@ export async function getGuestQueryRemaining(userId: string): Promise<number> {
 /**
  * Check if guest session is expired
  */
-export async function isGuestSessionExpired(userId: string): Promise<boolean> {
+export async function isGuestSessionExpired(userId: string, prisma: PrismaClient): Promise<boolean> {
     const user = await prisma.user.findUnique({ where: { id: userId } });
 
     if (!user || user.role !== 'GUEST') {

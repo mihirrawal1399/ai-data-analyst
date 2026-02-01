@@ -1,5 +1,5 @@
 import { Injectable, NestMiddleware, HttpException, HttpStatus } from '@nestjs/common';
-import { Request, Response, NextFunction } from 'express';
+import { FastifyRequest, FastifyReply } from 'fastify';
 
 interface RateLimitStore {
     [key: string]: {
@@ -18,7 +18,7 @@ export class RateLimitMiddleware implements NestMiddleware {
     private readonly maxRequests = 100; // requests per window
     private readonly windowMs = 15 * 60 * 1000; // 15 minutes
 
-    use(req: Request, res: Response, next: NextFunction) {
+    use(req: FastifyRequest['raw'], res: FastifyReply['raw'], next: () => void) {
         const identifier = this.getIdentifier(req);
         const now = Date.now();
 
@@ -60,12 +60,12 @@ export class RateLimitMiddleware implements NestMiddleware {
         next();
     }
 
-    private getIdentifier(req: Request): string {
+    private getIdentifier(req: any): string {
         // Use user ID if authenticated, otherwise IP
         const userId = req.headers['x-user-id'];
         if (userId) {
             return `user:${userId}`;
         }
-        return `ip:${req.ip || req.socket.remoteAddress}`;
+        return `ip:${req.socket.remoteAddress}`;
     }
 }

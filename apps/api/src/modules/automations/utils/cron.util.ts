@@ -1,4 +1,5 @@
-import * as cronParser from 'cron-parser';
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const cronParser = require('cron-parser');
 
 /**
  * Validate a cron expression

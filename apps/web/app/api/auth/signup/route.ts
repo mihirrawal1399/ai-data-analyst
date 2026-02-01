@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-import bcrypt from 'bcryptjs';
 
-const prisma = new PrismaClient();
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 
 export async function POST(request: Request) {
     try {
@@ -15,44 +13,27 @@ export async function POST(request: Request) {
             );
         }
 
-        // Check if user already exists
-        const existingUser = await prisma.user.findUnique({
-            where: { email },
+        const response = await fetch(`${API_URL}/auth/signup`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password }),
         });
 
-        if (existingUser) {
+        const data = await response.json();
+
+        if (!response.ok) {
             return NextResponse.json(
-                { error: 'User already exists' },
-                { status: 409 }
+                { error: data.message || 'Failed to create account' },
+                { status: response.status }
             );
         }
 
-        // Hash password
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        // Create new free user
-        const user = await prisma.user.create({
-            data: {
-                email,
-                password: hashedPassword,
-                role: 'FREE',
-            },
-        });
-
-        return NextResponse.json({
-            success: true,
-            user: {
-                id: user.id,
-                email: user.email,
-                role: user.role,
-            },
-        });
+        return NextResponse.json(data);
     } catch (error: any) {
+        console.error('Signup error:', error);
         return NextResponse.json(
             { error: 'Failed to create account', details: error.message },
             { status: 500 }
         );
-    } finally {
-        await prisma.$disconnect();
     }
 }

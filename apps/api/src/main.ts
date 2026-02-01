@@ -14,7 +14,8 @@ async function bootstrap() {
     new FastifyAdapter(),
   );
   await app.register(multipart);
-  await app.listen(process.env.API_PORT ?? 4000);
+  app.enableCors(); // Enable CORS for client-side access
+  await app.listen(process.env.API_PORT ?? 4000, '0.0.0.0'); // Listen on all interfaces
   console.log(`API Application is running on ${await app.getUrl()}`);
 }
 bootstrap();
