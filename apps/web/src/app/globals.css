@@ -50,3 +50,11 @@ a {
   background: var(--color-primary-1);
   color: var(--color-background);
 }
+
+/* Spacing Utilities */
+.section-padding { padding: var(--spacing-xl) var(--spacing-lg); }
+.card-padding { padding: var(--spacing-lg); }
+.form-spacing > * + * { margin-top: var(--spacing-md); }
+.stack-sm > * + * { margin-top: var(--spacing-sm); }
+.stack-md > * + * { margin-top: var(--spacing-md); }
+.stack-lg > * + * { margin-top: var(--spacing-lg); }

@@ -72,6 +72,14 @@ export function useChartPreview(datasetId: string, config: any) {
     });
 }
 
+// Agent Generic Query
+export function useAgentQuery() {
+    return useMutation({
+        mutationFn: (data: { datasetId: string; question: string }) =>
+            apiPost('/agent/query', data),
+    });
+}
+
 // MCP Health Check
 export function useMcpHealth() {
     return useQuery({
