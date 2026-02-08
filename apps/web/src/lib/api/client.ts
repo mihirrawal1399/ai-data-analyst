@@ -69,3 +69,11 @@ export async function apiDelete<T>(endpoint: string): Promise<T> {
 
     return handleResponse<T>(response);
 }
+
+// Axios-like wrapper for convenience
+export const apiClient = {
+    get: <T>(url: string) => apiGet<T>(url),
+    post: <T>(url: string, data?: any) => apiPost<T>(url, data),
+    put: <T>(url: string, data?: any) => apiPut<T>(url, data),
+    delete: <T>(url: string) => apiDelete<T>(url),
+};

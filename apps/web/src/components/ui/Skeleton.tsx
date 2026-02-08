@@ -1,4 +1,4 @@
-import { cn } from '@/lib/utils/cn';
+import { cn } from '@/lib/utils';
 
 interface SkeletonProps {
     className?: string;
@@ -9,7 +9,7 @@ export function Skeleton({ className, variant = 'rect' }: SkeletonProps) {
     return (
         <div
             className={cn(
-                'animate-pulse bg-surface',
+                'animate-pulse bg-slate-700/50',
                 variant === 'text' && 'h-4 rounded',
                 variant === 'rect' && 'rounded-lg',
                 variant === 'circle' && 'rounded-full',

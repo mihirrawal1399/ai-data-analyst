@@ -42,8 +42,7 @@ export function ChartPreview({ config, data, isLoading }: ChartPreviewProps) {
     return (
         <div className="h-96">
             <ChartRenderer
-                chart={{ type: config.type, config }}
-                data={data.results.rows}
+                chart={{ type: config.type, config, data: data.results.rows } as any}
             />
         </div>
     );

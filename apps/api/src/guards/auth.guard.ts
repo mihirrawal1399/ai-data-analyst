@@ -12,6 +12,18 @@ export class AuthGuard implements CanActivate {
     ): boolean | Promise<boolean> | Observable<boolean> {
         const request = context.switchToHttp().getRequest();
 
+        // Check for Service API Key (for worker/internal services)
+        const validApiKey = process.env.API_SERVICE_KEY;
+        const apiKey = request.headers['x-api-key'];
+
+        if (validApiKey && apiKey === validApiKey) {
+            request.user = {
+                id: 'system-service',
+                role: 'ENTERPRISE', // Service has full access
+            };
+            return true;
+        }
+
         // Extract user from headers (sent by frontend after NextAuth verification)
         const userId = request.headers['x-user-id'];
         const userRole = request.headers['x-user-role'];

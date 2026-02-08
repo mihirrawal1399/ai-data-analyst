@@ -55,7 +55,7 @@ export default function Home() {
         </h1>
 
         <p className="max-w-2xl text-lg md:text-xl text-slate-400 mb-12 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200">
-          Upload your datasets, ask questions in plain English, and get enterprise-grade 
+          Upload your datasets, ask questions in plain English, and get enterprise-grade
           dashboards generated in seconds. No SQL required.
         </p>
 
@@ -66,15 +66,7 @@ export default function Home() {
               <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
           </Link>
-          <Link href="/api/auth/guest" onClick={(e) => {
-             // We'll let the login page handle the guest logic via a redirect or keep it simple here
-             // Actually, for simplicity on landing, let's link to login which has the demo button,
-             // or direct to the guest API if we implemented a direct route. 
-             // The architecture says guests are supported. 
-             // Let's link to Login for now as it has the try demo button clearly.
-             e.preventDefault();
-             window.location.href = '/login'; 
-          }}>
+          <Link href="/login">
             <Button size="lg" variant="outline" className="h-12 px-8 text-lg border-white/10 text-white hover:bg-white/5 backdrop-blur-sm">
               Try Live Demo
             </Button>

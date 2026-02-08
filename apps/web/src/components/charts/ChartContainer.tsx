@@ -1,8 +1,8 @@
 'use client';
 
 import { ReactNode } from 'react';
-import { Card } from '../ui/Card';
-import { ChartSkeleton } from '../ui/Skeleton';
+import { Card } from '../ui/card';
+import { ChartSkeleton } from '../ui/skeleton';
 
 interface ChartContainerProps {
     title?: string;

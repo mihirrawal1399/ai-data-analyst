@@ -3,23 +3,23 @@ import { CreateAutomationDto, UpdateAutomationDto, AutomationHistoryResult } fro
 
 export const automationsApi = {
     list: (userId: string) =>
-        apiClient.get(`/automations?userId=${userId}`).then(res => res.data),
+        apiClient.get<any[]>(`/automations?userId=${userId}`),
 
     get: (id: string) =>
-        apiClient.get(`/automations/${id}`).then(res => res.data),
+        apiClient.get<any>(`/automations/${id}`),
 
     create: (doc: CreateAutomationDto) =>
-        apiClient.post('/automations', doc).then(res => res.data),
+        apiClient.post<any>('/automations', doc),
 
     update: (id: string, doc: UpdateAutomationDto) =>
-        apiClient.put(`/automations/${id}`, doc).then(res => res.data),
+        apiClient.put<any>(`/automations/${id}`, doc),
 
     remove: (id: string) =>
-        apiClient.delete(`/automations/${id}`).then(res => res.data),
+        apiClient.delete<any>(`/automations/${id}`),
 
     execute: (id: string) =>
-        apiClient.post(`/automations/${id}/execute`).then(res => res.data),
+        apiClient.post<any>(`/automations/${id}/execute`),
 
     getResults: (id: string, limit?: number) =>
-        apiClient.get(`/automations/${id}/results${limit ? `?limit=${limit}` : ''}`).then(res => res.data),
+        apiClient.get<AutomationHistoryResult[]>(`/automations/${id}/results${limit ? `?limit=${limit}` : ''}`),
 };

@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { useDatasets, useDeleteDataset } from '@/lib/api/dataset-queries';
-import { Card } from '@/components/ui/Card';
+import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Plus, Database, Trash2, FileText, Calendar } from 'lucide-react';

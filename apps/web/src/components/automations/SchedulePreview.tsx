@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import cronstrue from 'cronstrue';
-import { parseExpression } from 'cron-parser';
+import { CronExpressionParser } from 'cron-parser';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, Clock } from 'lucide-react';
@@ -28,7 +28,7 @@ export function SchedulePreview({ schedule }: SchedulePreviewProps) {
             const desc = cronstrue.toString(schedule, { use24HourTimeFormat: true });
             setDescription(desc);
 
-            const interval = parseExpression(schedule);
+            const interval = CronExpressionParser.parse(schedule);
             const runs = [];
             for (let i = 0; i < 5; i++) {
                 runs.push(interval.next().toDate());

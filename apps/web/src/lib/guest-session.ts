@@ -22,7 +22,7 @@ export async function createGuestSession() {
     }
 }
 
-export async function isGuestSessionExpired(createdAt: Date): boolean {
+export async function isGuestSessionExpired(createdAt: Date): Promise<boolean> {
     const sixHoursAgo = new Date(Date.now() - 6 * 60 * 60 * 1000);
     return createdAt < sixHoursAgo;
 }

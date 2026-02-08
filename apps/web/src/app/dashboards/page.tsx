@@ -5,9 +5,9 @@ import { useEffect, useState } from 'react';
 import { PageHeader } from '@/components/ui/PageHeader';
 import { NeonButton } from '@/components/ui/NeonButton';
 import { getDashboards } from '@/lib/api/dashboards';
-import { Card } from '@/components/ui/Card';
+import { Card } from '@/components/ui/card';
 import type { Dashboard } from '@/types/dashboard';
-import { Skeleton } from '@/components/ui/Skeleton';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function DashboardsPage() {
     const [dashboards, setDashboards] = useState<Dashboard[]>([]);

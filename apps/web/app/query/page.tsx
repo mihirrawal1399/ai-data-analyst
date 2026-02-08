@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useDatasets } from '@/lib/api/dataset-queries';
 import { useAgentQuery } from '@/lib/api/queries';
-import { Card, CardContent } from '@/components/ui/Card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -150,8 +150,8 @@ export default function QueryPage() {
 
                                 <div className={`max-w-[80%] space-y-2 ${msg.type === 'user' ? 'text-right' : 'text-left'}`}>
                                     <div className={`inline-block p-4 rounded-2xl ${msg.type === 'user'
-                                            ? 'bg-fuchsia-600 text-white rounded-br-none'
-                                            : 'bg-slate-800 text-slate-200 rounded-bl-none border border-slate-700'
+                                        ? 'bg-fuchsia-600 text-white rounded-br-none'
+                                        : 'bg-slate-800 text-slate-200 rounded-bl-none border border-slate-700'
                                         }`}>
                                         <p>{msg.content}</p>
                                     </div>

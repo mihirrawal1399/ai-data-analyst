@@ -1,45 +1,55 @@
 'use client';
 
-import { useState } from 'react';
-import { Card } from '@/components/ui/Card';
+import { useState, use } from 'react';
+import { Card } from '@/components/ui/card';
 import { ChartConfigForm } from '@/components/chart-builder/ChartConfigForm';
 import { ChartPreview } from '@/components/chart-builder/ChartPreview';
 import { useChartPreview, useCreateChart } from '@/lib/api/queries';
 import { useRouter } from 'next/navigation';
+import type { ChartType } from '@/types/chart';
 
 interface PageProps {
-    params: {
+    params: Promise<{
         datasetId: string;
-    };
+    }>;
+}
+
+interface LocalChartConfig {
+    type: 'line' | 'bar' | 'pie' | 'scatter';
+    xAxis: string;
+    yAxis: string;
+    title?: string;
 }
 
 // Mock columns - in a real app, fetch from API
 const MOCK_COLUMNS = ['date', 'revenue', 'users', 'sessions', 'conversion_rate'];
 
 export default function CreateChartPage({ params }: PageProps) {
+    const { datasetId } = use(params);
     const router = useRouter();
-    const [config, setConfig] = useState({
-        type: 'line' as const,
+    const [config, setConfig] = useState<LocalChartConfig>({
+        type: 'line',
         xAxis: '',
         yAxis: '',
         title: '',
     });
 
-    const { data, isLoading, refetch } = useChartPreview(params.datasetId, config);
+    const { data, isLoading, refetch } = useChartPreview(datasetId, config);
     const createChart = useCreateChart();
 
     const handleSave = async () => {
         try {
             await createChart.mutateAsync({
-                datasetId: params.datasetId,
-                type: config.type,
+                datasetId: datasetId,
+                type: config.type as ChartType,
                 config: {
+                    datasetId: datasetId,
                     xAxis: config.xAxis,
                     yAxis: config.yAxis,
                 },
                 title: config.title || `${config.type} Chart`,
             });
-            router.push(`/datasets/${params.datasetId}`);
+            router.push(`/datasets/${datasetId}`);
         } catch (error) {
             console.error('Failed to create chart:', error);
         }
@@ -90,7 +100,7 @@ export default function CreateChartPage({ params }: PageProps) {
                 </Card>
 
                 {/* Preview Panel */}
-                <Card glow className="h-fit">
+                <Card className="h-fit">
                     <h2 className="text-2xl font-semibold mb-6 text-foreground">
                         Preview
                     </h2>

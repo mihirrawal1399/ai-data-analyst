@@ -6,6 +6,7 @@ import { useAutomation, useAutomationResults } from '@/lib/api/automation-querie
 import { ExecutionResultCard } from '@/components/automations/ExecutionResultCard';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Card } from '@/components/ui/card';
 import { History, ArrowLeft, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 
@@ -47,8 +48,8 @@ export default function AutomationResultsPage() {
                 <div className="space-y-6">
                     {isLoading ? (
                         [1, 2, 3, 4].map(i => <Skeleton key={i} className="h-40 w-full bg-slate-900/50" />)
-                    ) : results?.length > 0 ? (
-                        results.map((result: any) => (
+                    ) : (results?.length ?? 0) > 0 ? (
+                        (results ?? []).map((result: any) => (
                             <div key={result.id} className="relative">
                                 <ExecutionResultCard result={result} />
                             </div>

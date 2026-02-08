@@ -11,13 +11,13 @@ export interface Dataset {
 }
 
 export async function getDatasets(): Promise<Dataset[]> {
-    return apiClient('/datasets');
+    return apiClient.get<Dataset[]>('/datasets');
 }
 
 export async function getDataset(id: string): Promise<Dataset> {
-    return apiClient(`/datasets/${id}`);
+    return apiClient.get<Dataset>(`/datasets/${id}`);
 }
 
 export async function deleteDataset(id: string): Promise<void> {
-    return apiClient(`/datasets/${id}`, { method: 'DELETE' });
+    return apiClient.delete<void>(`/datasets/${id}`);
 }

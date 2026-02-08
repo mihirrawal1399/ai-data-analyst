@@ -8,9 +8,11 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Play, Trash2, Calendar, FileText, Activity, AlertTriangle, TrendingUp, History } from 'lucide-react';
+import { Label } from '@/components/ui/label';
+import { Play, Trash2, Calendar, FileText, Activity, AlertTriangle, TrendingUp, History, ArrowRight } from 'lucide-react';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
 
 interface AutomationDetailsProps {
@@ -122,8 +124,8 @@ export function AutomationDetails({ id }: AutomationDetailsProps) {
                         <div className="space-y-4">
                             {isLoadingResults ? (
                                 [1, 2].map(i => <Skeleton key={i} className="h-40 w-full bg-slate-900/50" />)
-                            ) : results?.length > 0 ? (
-                                results.map((result: any) => (
+                            ) : (results?.length ?? 0) > 0 ? (
+                                (results ?? []).map((result: any) => (
                                     <ExecutionResultCard key={result.id} result={result} />
                                 ))
                             ) : (
@@ -132,7 +134,7 @@ export function AutomationDetails({ id }: AutomationDetailsProps) {
                                 </div>
                             )}
                         </div>
-                        {results?.length > 0 && (
+                        {(results?.length ?? 0) > 0 && (
                             <Button variant="ghost" className="w-full text-slate-400 hover:text-cyan-400" asChild>
                                 <Link href={`/automations/${id}/results`}>
                                     View Full History

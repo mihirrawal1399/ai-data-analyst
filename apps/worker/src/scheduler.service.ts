@@ -14,6 +14,9 @@ export class SchedulerService {
         this.apiClient = axios.create({
             baseURL: apiBaseUrl,
             timeout: 10000,
+            headers: {
+                'x-api-key': process.env.API_SERVICE_KEY || 'secret_worker_key',
+            },
         });
         this.runner = new RunnerService(apiBaseUrl);
         this.pollInterval = pollInterval;

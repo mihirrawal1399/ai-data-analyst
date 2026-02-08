@@ -13,7 +13,7 @@ import { AutomationConfigForm } from './AutomationConfigForm';
 import { SchedulePreview } from './SchedulePreview';
 import { useCreateAutomation } from '@/lib/api/automation-queries';
 import { toast } from 'sonner';
-import { Sparkles, Save, X } from 'lucide-react';
+import { Sparkles, Save, X, Rocket } from 'lucide-react';
 
 interface AutomationFormProps {
     userId: string;

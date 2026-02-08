@@ -3,7 +3,7 @@ import type { ChartType, ChartConfig, ChartFilter, Chart, ChartWithData, ChartDa
 export type { ChartType, ChartConfig, ChartFilter, Chart, ChartWithData, ChartDataPoint };
 
 export interface CreateChartDto {
-    dashboardId: string;
+    dashboardId?: string;
     datasetId: string;
     title?: string;
     type: ChartType;
