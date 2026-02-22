@@ -23,7 +23,9 @@
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^2.0.50",
+    "@ai-sdk/cohere": "^3.0.21",
     "@ai-sdk/google": "^2.0.44",
+    "@ai-sdk/groq": "^3.0.24",
     "@ai-sdk/openai": "^2.0.74",
     "@fastify/multipart": "^9.3.0",
     "@nestjs/common": "^11.0.1",

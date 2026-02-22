@@ -3,7 +3,11 @@ export enum LLMProvider {
     ANTHROPIC = 'anthropic',
     GOOGLE = 'google',
     GROQ = 'groq',
+    COHERE = 'cohere',
+    NVIDIA_NIM = 'nvidia_nim',
+    GITHUB_MODELS = 'github_models',
     OLLAMA = 'ollama',
+    HARDCODED = 'hardcoded',
 }
 
 export enum UserTier {
