@@ -1,78 +1,54 @@
 # AI Data Analyst
 
-A modern AI-powered data analysis platform that converts natural language into SQL queries, generates visual dashboards, and automates insights through scheduled reports.  
-Built with agentic workflows, MCP tools, and a clean full-stack architecture.
+Production-style AI data analysis platform built as a monorepo.
 
-## 🚀 Features
+## What it does
 
-- Natural language → SQL generation
-- Automated dashboards & charts
-- Multi-agent reasoning system
-- MCP Database Tool (safe SQL execution)
-- MCP Email Tool (automated reports)
-- Dataset ingestion & metadata extraction
-- Scheduled insights (daily/weekly)
-- Minimalistic, modern UI
+- Upload CSV datasets
+- Ask natural-language questions and run safe SQL
+- Build charts and dashboards
+- Run scheduled automations
+- Support guest + free user flows with quota guards
 
-## 🏗️ Tech Stack
+## Monorepo apps
 
-**Frontend:** Next.js, TailwindCSS, ShadCN  
-**Backend:** Node.js (NestJS), Prisma  
-**AI:** OpenAI GPT-4.1 / o3  
-**Database:** PostgreSQL + pgvector  
-**Workers:** BullMQ  
-**Tools:** MCP DB Tool, MCP Email Tool  
-**Repo Layout:** Turborepo monorepo
+- `apps/web` - Next.js frontend
+- `apps/api` - NestJS backend
+- `apps/mcp-db` - safe DB access tool (`/mcp_db`)
+- `apps/worker` - automation polling worker
+- `apps/mcp-email` - placeholder (not active runtime)
 
-## 📐 System Architecture
+## Quick start
 
-```mermaid
-flowchart TD
+```bash
+pnpm install
+pnpm --filter api prisma generate
+pnpm --filter api prisma migrate dev
+pnpm dev
+```
 
-    subgraph UI[Next.js Web App]
-        A1[Chat Interface]
-        A2[Dashboard Viewer]
-        A3[Dataset Upload]
-    end
+## Docs
 
-    subgraph API[NestJS Backend]
-        B1[Auth & Users]
-        B2[Dataset Service]
-        B3[SQL Generation]
-        B4[Visualization Service]
-        B5[Automation Scheduler]
-    end
+- Setup: `docs/setup.md`
+- Architecture: `docs/architecture.md`
+- Commands: `docs/commands.md`
+- MCP tools: `docs/mcp-tools.md`
+- Zero-cost deploy (Phase 1): `docs/deployment-phase1-free.md`
+- Environment reference: `docs/env-reference.md`
+- Oracle VM env template: `docs/env.oracle-vm.example`
 
-    subgraph WORKER[BullMQ Worker]
-        W1[Scheduled Jobs]
-        W2[Weekly Reports]
-        W3[Anomaly Detection]
-    end
+## Deploy artifacts (Oracle VM)
 
-    subgraph MCPDB[MCP DB Tool]
-        M1[Schema Inspector]
-        M2[Query Executor]
-    end
+- Compose: `deploy/oracle-vm/docker-compose.oracle-vm.yml`
+- Nginx: `deploy/oracle-vm/nginx.conf`
+- Service Dockerfiles: `deploy/oracle-vm/Dockerfile.*`
 
-    subgraph MCPEMAIL[MCP Email Tool]
-        E1[Send Email]
-        E2[Attach Reports]
-    end
+## CI/CD
 
-    subgraph DB[PostgreSQL]
-        D1[(Tables + Vectors)]
-    end
+- CI: `.github/workflows/ci.yml`
+- CD (Oracle VM over SSH): `.github/workflows/cd-oracle-vm.yml`
 
+## Notes
 
-    A1 -->|Ask Question| API
-    A2 --> API
-    A3 -->|Upload| API
-
-    API -->|Generate SQL| MCPDB
-    API -->|Store results| DB
-    
-    WORKER --> API
-    WORKER --> MCPEMAIL
-
-    MCPDB --> DB
-
+- For zero-cost testing, set `LLM_PROVIDER=HARD_CODED`.
+- For BYOK live tests, provide your provider key and switch `LLM_PROVIDER`.

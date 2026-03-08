@@ -1,115 +1,83 @@
 # Setup Guide
 
-This document explains how to install, configure, and run the AI Data Analyst monorepo on your local machine.
+This setup reflects the current codebase state (web + api + mcp-db + worker).
 
----
+## 1. Prerequisites
 
-# 1. Prerequisites
-
-Make sure the following are installed:
-
-- Node.js (v18+)
-- pnpm (recommended) or npm/yarn
-- PostgreSQL (v14+)
+- Node.js 20+
+- pnpm 10+
+- PostgreSQL 14+
 - Git
-- OpenAI API key
-- Redis (for BullMQ worker)
 
-Optional (recommended):
+Optional for AI testing:
+- At least one provider API key (OpenAI/Anthropic/Groq/etc)
+- Or `LLM_PROVIDER=HARD_CODED` for zero-cost local testing
 
-- Docker Desktop
-- Prisma Studio (`pnpm dlx prisma studio`)
-
----
-
-# 2. Install Dependencies
-
-Clone the repo:
-
-```bash
-git clone https://github.com/mihirrawal1399/ai-data-analyst.git
-cd ai-data-analyst
-```
-
-Install dependencies:
+## 2. Install
 
 ```bash
 pnpm install
 ```
 
-Turborepo will automatically install packages inside all apps.
+## 3. Environment
 
----
+Create `.env` at the repository root and set at least:
 
-# 3. Environment Variables
-
-Copy the example environment file:
-
-```bash
-cp .env.example .env
+```env
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/ai_data_analyst
+API_PORT=4000
+MCP_DB_PORT=5001
+MCP_DB_URL=http://localhost:5001/mcp_db
+API_SERVICE_KEY=change_me_service_key
+API_BASE_URL=http://localhost:4000
+NEXT_PUBLIC_API_URL=http://localhost:4000
+NEXTAUTH_SECRET=change_me_nextauth_secret
+NEXTAUTH_URL=http://localhost:3000
+LLM_PROVIDER=HARD_CODED
 ```
 
-Open the `.env` file and fill in the required fields:
+Notes:
+- `MCP_DB_URL` must use `/mcp_db`.
+- Worker and API must share the same `API_SERVICE_KEY`.
 
-- PostgreSQL connection
-- Redis URL
-- OpenAI API key
-- Email provider keys
-- Service ports
-
-A full reference is provided inside `.env.example`.
-
----
-
-# 4. Database Setup
-
-Run Prisma migrations:
-
-```bash
-pnpm --filter api prisma migrate dev
-```
-
-Generate Prisma client:
+## 4. Database
 
 ```bash
 pnpm --filter api prisma generate
+pnpm --filter api prisma migrate dev
 ```
 
-(Optional) Open Prisma Studio:
-
-```bash
-pnpm --filter api studio
-```
-
----
-
-# 5. Running the Project
-
-Start all apps together:
+## 5. Run all services
 
 ```bash
 pnpm dev
 ```
 
-This runs:
+Expected services:
+- `apps/web` (Next.js)
+- `apps/api` (NestJS)
+- `apps/mcp-db` (Fastify)
+- `apps/worker` (automation poller)
 
-- `apps/web` — Next.js frontend
-- `apps/api` — NestJS backend
-- `apps/mcp-db` — MCP DB tool server
-- `apps/mcp-email` — MCP Email tool server
-- `apps/worker` — BullMQ worker
-
----
-
-# 6. Running Individual Apps
-
-### Web (Next.js)
+## 6. Run individual services
 
 ```bash
 pnpm --filter web dev
+pnpm --filter api dev
+pnpm --filter mcp-db dev
+pnpm --filter worker dev
 ```
 
-### API (NestJS)
+## 7. Smoke checks
 
 ```bash
-pnpm --filter api de
+curl http://localhost:4000/
+curl http://localhost:5001/health
+curl http://localhost:4000/mcp/db/health
+```
+
+## 8. Known doc drift fixed here
+
+- Worker is polling-based, not BullMQ/Redis.
+- `apps/mcp-email` is currently a placeholder and is not part of runtime.
+- Old endpoint examples using `/mcp_db_tool` are outdated; use `/mcp_db`.
