@@ -20,16 +20,18 @@ This roadmap captures what is done and what is next.
 - Guest/free auth and quota guards
 - Insights generation layer
 
-## Current deploy target (Phase 1)
+## Current deploy target
 
 - Web on Vercel Hobby
 - DB on Neon Free
-- API + MCP DB + Worker on Oracle Always Free VM
+- API + MCP DB + Worker on Fly.io Machines
 
 ## Next after launch
 
-- Conversational chat UX
+- Dashboard-aware conversational chat UX
+- Relational chat history tied to dashboards, charts, datasets, and queries
+- Optional `pgvector` semantic recall after chat/report history becomes large
 - Paid plans and billing
 - Team workspaces
 - Observability and scaling hardening
-- Optional queue-based worker architecture for higher throughput
+- Queue or scheduled-job worker architecture for higher throughput

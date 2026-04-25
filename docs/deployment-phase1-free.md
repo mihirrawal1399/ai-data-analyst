@@ -1,95 +1,68 @@
-# Deployment Guide - Phase 1 (Zero Cost)
+# Deployment Guide - Phase 1 (Low Cost)
 
-This guide targets a near-zero-cost deployment:
+This guide targets a low-cost deployment for resume/demo usage:
 
 - Web: Vercel Hobby
 - Database: Neon Free
-- Backend services (`api`, `mcp-db`, `worker`): Oracle Cloud Always Free VM
+- Backend services (`api`, `mcp-db`, `worker`): Fly.io Machines
 
 ## 1. Architecture
 
 ```text
 User -> Vercel (Next.js web)
-     -> Oracle VM (Nginx + api + mcp-db + worker)
-     -> Neon Postgres
+     -> Fly.io API app
+        -> Fly.io private MCP DB app
+        -> Neon Postgres
+     -> Fly.io worker app -> Fly.io API app
 ```
 
 Why this shape:
-- Worker must stay alive for polling/scheduling.
-- Many free container platforms sleep; a free always-on VM avoids missed automations.
+- Vercel is still the easiest and cheapest frontend host.
+- Neon keeps Postgres managed and free for light usage.
+- Fly.io supports always-on backend and worker processes without managing a VM.
+- The MCP DB tool is private on Fly's internal network; only the API is public.
 
-## 2. VM setup (one-time)
+## 2. Fastest Path
 
-On Oracle VM install:
-- Docker
-- Docker Compose plugin
-- Git
+Use `docs/deployment-fly.md` as the runbook.
 
-Clone the repo:
+## 3. Expected Cost
 
-```bash
-git clone <your-repo-url> /opt/ai-data-analyst
-cd /opt/ai-data-analyst
-```
+For resume/experimental usage, expect roughly `$7-12/month` on Fly before tax/region variance:
 
-Create VM env file:
+- API: `shared-cpu-1x`, `512MB`
+- MCP DB: `shared-cpu-1x`, `256MB`
+- Worker: `shared-cpu-1x`, `256MB`
 
-```bash
-cp docs/env.oracle-vm.example deploy/oracle-vm/.env
-# edit deploy/oracle-vm/.env with real values
-```
+If API memory needs to be raised to `1GB`, budget closer to `$10-16/month`.
 
-Start stack:
-
-```bash
-docker compose -f deploy/oracle-vm/docker-compose.oracle-vm.yml up -d --build
-```
-
-## 3. Service exposure
-
-- Nginx exposes API on VM port `80`.
-- `mcp-db` remains private inside Docker network.
-
-Map DNS:
-- `api.yourdomain.com` -> Oracle VM public IP
-
-## 4. Vercel web deployment
+## 4. Vercel Web Deployment
 
 Deploy `apps/web` in Vercel and set:
 
 ```env
-NEXT_PUBLIC_API_URL=https://api.yourdomain.com
+NEXT_PUBLIC_API_URL=https://aida-api.fly.dev
 NEXTAUTH_URL=https://<your-vercel-domain>
 NEXTAUTH_SECRET=<strong_secret>
 ```
 
-## 5. GitHub Actions CD (Oracle VM)
+## 5. GitHub Actions CD
 
 Workflow file:
-- `.github/workflows/cd-oracle-vm.yml`
 
-Required GitHub secrets:
-- `ORACLE_VM_HOST`
-- `ORACLE_VM_PORT` (usually `22`)
-- `ORACLE_VM_USER`
-- `ORACLE_VM_SSH_KEY`
-- `VM_REPO_URL`
-- `VM_APP_DIR` (optional, defaults to `/opt/ai-data-analyst`)
+- `.github/workflows/cd-fly.yml`
 
-What it does on every push to `main`:
-1. SSH into VM
-2. Clone repo if missing
-3. Pull latest `main`
-4. Run `docker compose ... up -d --build --remove-orphans`
+Required GitHub secret:
 
-## 6. Post-deploy checks
+- `FLY_API_TOKEN`
 
-- Open web app and create guest session.
-- Upload demo CSV and run queries.
-- Verify `GET /mcp/db/health` on API.
-- Create one automation and confirm worker executes it.
+The workflow deploys the MCP DB app, API app, runs Prisma migrations on the API app, then deploys the worker app.
 
-## 7. Limits and scale path
+## 6. Scale Path
 
-- Vercel Hobby is for personal/non-commercial usage.
-- For heavier usage, move backend to paid managed containers and add queue/observability.
+If this becomes real SaaS traffic:
+
+- Increase API memory to `1GB` or `2GB`
+- Convert worker polling into queue/scheduled jobs
+- Add observability and error tracking
+- Add `pgvector` memory for long-term semantic retrieval if dashboard chat history grows

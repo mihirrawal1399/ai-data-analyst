@@ -1,0 +1,23 @@
+app = "aida-api"
+primary_region = "bom"
+
+[build]
+  dockerfile = "deploy/fly/Dockerfile.api"
+
+[env]
+  API_PORT = "4000"
+  MCP_DB_PORT = "5001"
+  MCP_DB_URL = "http://aida-mcp-db.internal:5001/mcp_db"
+  LLM_PROVIDER = "HARD_CODED"
+
+[http_service]
+  internal_port = 4000
+  force_https = true
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 512

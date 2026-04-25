@@ -33,22 +33,22 @@ pnpm dev
 - Architecture: `docs/architecture.md`
 - Commands: `docs/commands.md`
 - MCP tools: `docs/mcp-tools.md`
-- Zero-cost deploy (Phase 1): `docs/deployment-phase1-free.md`
+- Low-cost deploy: `docs/deployment-fly.md`
+- Deployment checklist: `docs/deployment-checklist.md`
+- AI positioning: `docs/ai-positioning.md`
 - Environment reference: `docs/env-reference.md`
-- Oracle VM env template: `docs/env.oracle-vm.example`
 
-## Deploy artifacts (Oracle VM)
+## Deploy artifacts
 
-- Compose: `deploy/oracle-vm/docker-compose.oracle-vm.yml`
-- Nginx: `deploy/oracle-vm/nginx.conf`
-- Service Dockerfiles: `deploy/oracle-vm/Dockerfile.*`
+- Fly configs: `deploy/fly/fly.*.toml`
+- Service Dockerfiles: `deploy/fly/Dockerfile.*`
 
 ## CI/CD
 
 - CI: `.github/workflows/ci.yml`
-- CD (Oracle VM over SSH): `.github/workflows/cd-oracle-vm.yml`
+- CD (Fly.io): `.github/workflows/cd-fly.yml`
 
 ## Notes
 
-- For zero-cost testing, set `LLM_PROVIDER=HARD_CODED`.
+- For zero-cost AI testing, set `LLM_PROVIDER=HARD_CODED`.
 - For BYOK live tests, provide your provider key and switch `LLM_PROVIDER`.

@@ -1,0 +1,14 @@
+app = "aida-mcp-db"
+primary_region = "bom"
+
+[build]
+  dockerfile = "deploy/fly/Dockerfile.mcp-db"
+
+[env]
+  MCP_DB_PORT = "5001"
+  DATABASE_SSL = "true"
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 256

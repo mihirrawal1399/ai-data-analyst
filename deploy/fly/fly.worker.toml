@@ -1,0 +1,15 @@
+app = "aida-worker"
+primary_region = "bom"
+
+[build]
+  dockerfile = "deploy/fly/Dockerfile.worker"
+
+[env]
+  API_BASE_URL = "http://aida-api.internal:4000"
+  WORKER_POLL_INTERVAL = "60000"
+  WORKER_LOG_LEVEL = "info"
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 256
